@@ -2,9 +2,13 @@
 #include "depend/stb_image.h"
 #include "log.hpp"
 
+#include <array>
+
 namespace Saturn {
 
 bool ResourceLoaders::loadModel(std::string path, Resources::Model& model) {
+    using namespace std::literals::string_literals;
+
     // Aliases to make the code a bit more readable
     auto& vao = model.vao;
     auto& vbo = model.vbo;
@@ -19,11 +23,69 @@ bool ResourceLoaders::loadModel(std::string path, Resources::Model& model) {
 
     // Now we load the vertex data from the file
     // A vertex data file looks like this:
-    // Vertex array data, comma separated
+    // [Amount of vertices]
+    // [The used attributes, space separated. This is a list containing any of
+    // the supported attributes, which are listed below]
+    // The list has to be in the order specified here
+    // Attributes: position
+    //			   color
+    //			   normal
+    //			   texcoord
+    //"data" (without quotes, this one is important, the model will fail to load if you omit this)
+    //[All vertex data, space separated with newlines where wanted]
+
+    // Set attribute metadata and supported attributes
+    static std::array supported_attributes{"position"s, "color"s, "normal"s,
+                                           "texcoord"s};
+
+    struct AttributeMetaData {
+        std::size_t size;
+        std::size_t location;
+    };
+
+#define DECLARE_ATTRIBUTE(name, size, location)                        \
+    static AttributeMetaData name{size, location}
+
+    DECLARE_ATTRIBUTE(position, 3, 0);
+    DECLARE_ATTRIBUTE(color, 3, 1);
+    DECLARE_ATTRIBUTE(normal, 3, 2);
+    DECLARE_ATTRIBUTE(texcoord, 2, 3);
+
+#undef DECLARE_ATTRIBUTE
+
+    auto get_metadata = [](std::string_view name) {
+        if (name == "position")
+            return position;
+        else if (name == "color")
+            return color;
+        else if (name == "normal")
+            return normal;
+        else if (name == "texcoord")
+            return texcoord;
+        else
+            return AttributeMetaData{0, 0};
+    };
 
     std::ifstream file(path);
     if (!file.good()) return false;
 
+    int vertex_count;
+    file >> vertex_count;
+
+    std::vector<std::string> attributes;
+    std::string attr;
+    while (file >> attr) {
+        if (attr == "data") break;
+        if (std::find(supported_attributes.begin(), supported_attributes.end(),
+                      attr) != supported_attributes.end()) {
+            attributes.push_back(attr);
+        } else {
+            Saturn::error("Unknown attribute: "s + attr);
+            return false;
+        }
+    }
+
+    // Now, load in the vertex data
     std::vector<float> vertices;
     float elem;
     while (file >> elem) { vertices.push_back(elem); }
@@ -31,20 +93,24 @@ bool ResourceLoaders::loadModel(std::string path, Resources::Model& model) {
     // Now, fill the buffer
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float),
                  vertices.data(), GL_STATIC_DRAW);
-    // Currently we only support positions. This will change in the future
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
-                          (void*)0);
-    glEnableVertexAttribArray(0);
-    // Texture Coords
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
-                          (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
+
+    std::size_t totalSize = vertices.size() / vertex_count;
+    std::size_t offset = 0;
+    // Set attribute pointers
+    for (auto const& attr : attributes) {
+        auto metadata = get_metadata(attr);
+        glVertexAttribPointer(metadata.location, metadata.size, GL_FLOAT,
+                              GL_FALSE, totalSize * sizeof(float),
+                              (void*)(offset * sizeof(float)));
+        glEnableVertexAttribArray(metadata.location);
+		offset += metadata.size;
+    }
 
     // Unbind the buffer and VAO object
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    model.vertex_count = vertices.size() / 5;
+    model.vertex_count = vertex_count;
 
     return true;
 }

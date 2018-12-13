@@ -7,8 +7,8 @@
 #include <vector>
 
 #include "IDGenerator.hpp"
+#include "Light.hpp"
 #include "OpenGL.hpp"
-
 #include "Resource.hpp"
 #include "ResourceTypes.hpp"
 
@@ -43,6 +43,12 @@ struct Material : ComponentBase {
     ResourceRef<Resources::Texture> texture;
 };
 
+struct Lights : ComponentBase {
+    std::vector<DirectionalLight> directionalLights;
+    std::vector<PointLight> pointLights;
+	std::vector<SpotLight> spotLights;
+};
+
 } // namespace Components
 
 namespace detail {
@@ -52,7 +58,8 @@ struct AllComponents {};
 
 #define COMPONENT ::Saturn::Components::
 
-using MainComponentList = AllComponents<COMPONENT Transform, COMPONENT Mesh, COMPONENT Material>;
+using MainComponentList =
+    AllComponents<COMPONENT Transform, COMPONENT Mesh, COMPONENT Material, COMPONENT Lights>;
 
 #undef COMPONENT
 
