@@ -32,17 +32,19 @@ bool ResourceLoaders::loadModel(std::string path, Resources::Model& model) {
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float),
                  vertices.data(), GL_STATIC_DRAW);
     // Currently we only support positions. This will change in the future
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float),
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
                           (void*)0);
     glEnableVertexAttribArray(0);
+    // Texture Coords
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+                          (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     // Unbind the buffer and VAO object
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    // This is not correct when using multiple attributes, but let's ignore
-    // that for now
-    model.vertex_count = vertices.size() / 3;
+    model.vertex_count = vertices.size() / 5;
 
     return true;
 }
@@ -79,7 +81,7 @@ bool ResourceLoaders::loadTexture(std::string path,
         return false;
     }
 
-    GLenum format = GL_RGB; //default, might not always work
+    GLenum format = GL_RGB; // default, might not always work
     if (channels == 1)
         format = GL_RED;
     else if (channels == 3)

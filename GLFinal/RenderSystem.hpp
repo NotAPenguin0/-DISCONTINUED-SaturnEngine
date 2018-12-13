@@ -18,7 +18,13 @@ public:
     static constexpr const char* defaultFragmentPath =
         "resources/shaders/default_f.glsl";
 
+    static constexpr const char* texturedVertexPath =
+        "resources/shaders/textured_v.glsl";
+    static constexpr const char* texturedFragmentPath =
+        "resources/shaders/textured_f.glsl";
+
     static inline Shader defaultShader;
+    static inline Shader texturedShader;
 
     SYSTEM_CONSTRUCTOR(RenderSystem)
 

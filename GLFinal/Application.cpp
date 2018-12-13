@@ -135,6 +135,7 @@ void Application::init() {
     trans.position = glm::vec3(0.0f, 0.0f, 0.0f);
     trans.rotation = {glm::vec3(1.0f), 0.0f};
     trans.scale = glm::vec3(1.0f);
+    mat.texture = textureManager.get("resources/temp/container2.png");
 }
 
 Application::~Application() {
