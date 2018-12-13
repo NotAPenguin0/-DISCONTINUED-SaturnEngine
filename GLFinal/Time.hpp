@@ -1,7 +1,7 @@
-#ifndef MVG_TIME_HPP_
-#define MVG_TIME_HPP_
+#ifndef SATURN_TIME_HPP_
+#define SATURN_TIME_HPP_
 
-namespace mvg {
+namespace Saturn {
 
 class Time {
 public:
@@ -16,6 +16,6 @@ private:
     static inline float lastFrame;
 };
 
-} // namespace mvg
+} // namespace Saturn
 
 #endif

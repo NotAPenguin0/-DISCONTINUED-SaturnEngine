@@ -1,17 +1,18 @@
-#ifndef MVG_COMPONENT_SYSTEM_HPP_
-#define MVG_COMPONENT_SYSTEM_HPP_
+#ifndef SATURN_COMPONENT_SYSTEM_HPP_
+#define SATURN_COMPONENT_SYSTEM_HPP_
 
 #include "Components.hpp"
 #include "ObjectManager.hpp"
 #include "type_list.hpp"
+
 #include <list>
 
-namespace mvg {
+namespace Saturn {
 
 class ComponentSystem {
 public:
     template<class... Cs>
-    using ListComponents = type_list<Cs...>;
+    using ListComponents = mvg::type_list<Cs...>;
 
 private:
     template<typename CList>
@@ -19,9 +20,9 @@ private:
 
     template<typename... Cs>
     struct get_objects_impl<ListComponents<Cs...>> {
-        static void get(std::list<Object*>& result) {
-            for (auto& [id, obj] : objects.objects) {
-                if ((obj.template hasComponent<Cs>() && ...)) {
+        static void get(std::list<Object*>& result, ObjectManager::storage_type& objects) {
+            for (auto& [id, obj] : objects) {
+                if ((obj.hasComponent<Cs>() && ...)) {
                     // The object has all components needed for this system to
                     // operate, so add it to the result list
                     result.push_back(&obj);
@@ -37,7 +38,7 @@ public:
     std::list<Object*> getObjects() {
         std::list<Object*> result;
 
-        get_objects_impl<CList>::get(result);
+        get_objects_impl<CList>::get(result, objects.objects);
 
         return result;
     }
@@ -54,8 +55,8 @@ private:
 };
 
 #define SYSTEM_CONSTRUCTOR(name)                                               \
-    inline name(ObjectManager& man) : ComponentSystem(man) {}
+    explicit inline name(ObjectManager& man) : ComponentSystem(man) {}
 
-} // namespace mvg
+} // namespace Saturn
 
 #endif

@@ -1,11 +1,11 @@
-#ifndef MVG_OBJECT_HPP_
-#define MVG_OBJECT_HPP_
+#ifndef SATURN_OBJECT_HPP_
+#define SATURN_OBJECT_HPP_
 
 #include "Components.hpp"
 #include "IDGenerator.hpp"
 #include <cstddef>
 
-namespace mvg {
+namespace Saturn {
 
 class Object {
 public:
@@ -49,6 +49,6 @@ private:
     ObjectIDGenerator::IDType ID;
 };
 
-} // namespace mvg
+} // namespace Saturn
 
 #endif

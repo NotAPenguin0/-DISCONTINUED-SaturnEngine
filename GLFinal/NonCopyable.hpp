@@ -1,7 +1,7 @@
-#ifndef MVG_NON_COPYABLE_HPP_
-#define MVG_NON_COPYABLE_HPP_
+#ifndef SATURN_NON_COPYABLE_HPP_
+#define SATURN_NON_COPYABLE_HPP_
 
-namespace mvg {
+namespace Saturn {
 
 class NonCopyable {
 public:
@@ -12,6 +12,6 @@ private:
     NonCopyable& operator=(NonCopyable const&) = delete;
 };
 
-} // namespace mvg
+} // namespace Saturn
 
 #endif

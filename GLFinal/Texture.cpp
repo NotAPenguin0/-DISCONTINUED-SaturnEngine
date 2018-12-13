@@ -5,7 +5,7 @@
 
 #include <string>
 
-namespace mvg {
+namespace Saturn {
 
 bool Texture::load(const char* fname,
                    int unit /* = GL_TEXTURE0 */,
@@ -22,7 +22,7 @@ bool Texture::load(const char* fname,
     int channels;
     unsigned char* data = stbi_load(fname, &w, &h, &channels, 0);
     if (data == nullptr) {
-        mvg::error("failed to load texture at path"s + fname);
+        Saturn::error("failed to load texture at path"s + fname);
         return false;
     }
 
@@ -75,4 +75,4 @@ void Texture::set_parameter(int param, int val)
     glTexParameteri(GL_TEXTURE_2D, param, val);
 }
 
-} // namespace mvg
+} // namespace Saturn

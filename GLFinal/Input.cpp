@@ -2,7 +2,7 @@
 
 #include "Window.hpp"
 
-namespace mvg {
+namespace Saturn {
 
 std::unordered_map<Input::KeyT, Input::CallbackT> Input::keybinds;
 
@@ -20,4 +20,4 @@ bool Input::key_pressed(Window& win, KeyT key)
     return glfwGetKey(win.handle(), key) == GLFW_PRESS;
 }
 
-} // namespace mvg
+} // namespace Saturn

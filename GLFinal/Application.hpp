@@ -1,13 +1,16 @@
-#ifndef MVG_APPLICATION_HPP_
-#define MVG_APPLICATION_HPP_
+#ifndef SATURN_APPLICATION_HPP_
+#define SATURN_APPLICATION_HPP_
 
 #include "NonCopyable.hpp"
 
-#include "World.hpp"
+#include "FPSCamera.hpp"
 #include "ObjectManager.hpp"
+#include "Resource.hpp"
+#include "ResourceLoaders.hpp"
 #include "Window.hpp"
+#include "World.hpp"
 
-namespace mvg {
+namespace Saturn {
 
 // Only one instance of this class should be made. This is the class that
 // controls the application (window, game loop, etc)
@@ -21,10 +24,58 @@ public:
     void quit();
 
 private:
+    static void mouse_callback([[maybe_unused]] GLFWwindow* win,
+                               double xpos,
+                               double ypos);
+    static void scroll_callback([[maybe_unused]] GLFWwindow* window,
+                                [[maybe_unused]] double xoffset,
+                                double yoffset);
+
     Window window;
-	World world;
+    World world;
+    ResourceManager<Resources::Model> modelManager;
+    ResourceManager<Resources::Texture> textureManager;
+    FPSCamera camera;
 };
 
-} // namespace mvg
+} // namespace Saturn
+
+/*
+-0.5f -0.5f -0.5f
+0.5f -0.5f -0.5f
+0.5f 0.5f -0.5f
+ *0.5f 0.5f -0.5f
+-0.5f 0.5f -0.5f
+-0.5f -0.5f -0.5f
+-0.5f -0.5f 0.5f
+0.5f -0.5f 0.5f
+0.5f 0.5f 0.5f
+0.5f 0.5f 0.5f
+-0.5f 0.5f 0.5f
+-0.5f -0.5f 0.5f
+-0.5f 0.5f 0.5f
+-0.5f 0.5f -0.5f
+-0.5f -0.5f -0.5f
+-0.5f -0.5f -0.5f
+-0.5f -0.5f 0.5f
+-0.5f 0.5f 0.5f
+0.5f 0.5f 0.5f
+0.5f 0.5f -0.5f
+0.5f -0.5f -0.5f
+0.5f -0.5f -0.5f
+0.5f -0.5f 0.5f
+0.5f 0.5f 0.5f
+-0.5f -0.5f -0.5f
+0.5f -0.5f -0.5f
+0.5f -0.5f 0.5f
+0.5f -0.5f 0.5f
+-0.5f -0.5f 0.5f
+-0.5f -0.5f -0.5f
+-0.5f 0.5f -0.5f
+0.5f 0.5f -0.5f
+0.5f 0.5f 0.5f
+0.5f 0.5f 0.5f
+-0.5f 0.5f 0.5f
+-0.5f 0.5f -0.5f*/
 
 #endif

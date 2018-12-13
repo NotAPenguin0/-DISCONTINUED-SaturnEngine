@@ -35,12 +35,9 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 float lastX = 400, lastY = 300;
 bool firstMouse = true;
-mvg::FPSCamera camera(glm::vec3(0.5, 1.0f, 4.5f));
+Saturn::FPSCamera camera(glm::vec3(0.5, 1.0f, 4.5f));
 
-std::ostream& operator<<(std::ostream& out, glm::vec3 const& vec) {
-    out << "(" << vec.x << ", " << vec.y << ", " << vec.z << ")";
-    return out;
-}
+std::ostream& operator<<(std::ostream& out, glm::vec3 const& vec);
 
 std::istream& operator>>(std::istream& in, glm::vec3& vec) {
     in >> vec.x >> vec.y >> vec.z;
@@ -48,7 +45,7 @@ std::istream& operator>>(std::istream& in, glm::vec3& vec) {
 }
 
 void init() {
-    if (!glfwInit()) { mvg::error("Failed to initialize GLFW\n"); }
+    if (!glfwInit()) { Saturn::error("Failed to initialize GLFW\n"); }
     glfwWindowHint(GLFW_SAMPLES, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -72,7 +69,7 @@ unsigned int create_shader(const char* vtx_path, const char* frag_path) {
     std::fstream file(vtx_path);
 
     if (!file.good()) {
-        mvg::error(
+        Saturn::error(
             "[SHADER::VERTEX]: failed to open vertex shader source file at path"s +
             vtx_path);
         return -1;
@@ -88,7 +85,7 @@ unsigned int create_shader(const char* vtx_path, const char* frag_path) {
     file.open(frag_path);
 
     if (!file.good()) {
-        mvg::error(
+        Saturn::error(
             "[SHADER::FRAGMENT]: failed to open fragment shader source file at path"s +
             frag_path);
         return -1;
@@ -119,7 +116,7 @@ unsigned int create_shader(const char* vtx_path, const char* frag_path) {
     glGetShaderiv(vtx_shader, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(vtx_shader, 512, nullptr, infolog);
-        mvg::error("[SHADER::VERTEX::COMPILATION_FAILED]: "s + infolog);
+        Saturn::error("[SHADER::VERTEX::COMPILATION_FAILED]: "s + infolog);
         return -1;
     }
 
@@ -127,7 +124,7 @@ unsigned int create_shader(const char* vtx_path, const char* frag_path) {
     glGetShaderiv(frag_shader, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(frag_shader, 512, nullptr, infolog);
-        mvg::error("[SHADER::FRAGMENT::COMPILATION_FAILED]: "s + infolog);
+        Saturn::error("[SHADER::FRAGMENT::COMPILATION_FAILED]: "s + infolog);
         return -1;
     }
 
@@ -141,7 +138,7 @@ unsigned int create_shader(const char* vtx_path, const char* frag_path) {
     glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
     if (!success) {
         glGetProgramInfoLog(shaderProgram, 512, nullptr, infolog);
-        mvg::error("[SHADER::LINK_FAILED]: "s + infolog);
+        Saturn::error("[SHADER::LINK_FAILED]: "s + infolog);
         return -1;
     }
 
@@ -157,9 +154,9 @@ void reload_shader(unsigned int& prog, const char* vtx, const char* frag) {
 }
 
 void process_input(GLFWwindow* window) {
-    static mvg::Timer shaderReloadTimer;
-    static mvg::Timer wireFrameTimer;
-    static mvg::Timer posTimer;
+    static Saturn::Timer shaderReloadTimer;
+    static Saturn::Timer wireFrameTimer;
+    static Saturn::Timer posTimer;
     static bool wireFrameEnabled = false;
     static constexpr std::chrono::milliseconds delay{300};
 
@@ -169,7 +166,7 @@ void process_input(GLFWwindow* window) {
         camera.Speed = 5.0f;
     }
 
-    using mvg::Direction;
+    using Saturn::Direction;
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         camera.move(Direction::Forward, deltaTime);
@@ -200,7 +197,7 @@ void process_input(GLFWwindow* window) {
                 shaderReloadTimer.start(delay);
                 reload_shader(shader, VertexPath, FragmentPath);
                 reload_shader(lampShader, LampVertex, LampFragment);
-                mvg::info("Shader reload complete");
+                Saturn::info("Shader reload complete");
             }
         }
         if (glfwGetKey(window, GLFW_KEY_Z) ==
@@ -212,17 +209,17 @@ void process_input(GLFWwindow* window) {
 
                 if (wireFrameEnabled) {
                     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-                    mvg::info("Wireframe mode enabled");
+                    Saturn::info("Wireframe mode enabled");
                 } else {
                     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-                    mvg::info("Wireframe mode disabled");
+                    Saturn::info("Wireframe mode disabled");
                 }
             }
         }
         if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
             if (posTimer.has_ended()) {
                 posTimer.start(delay);
-                mvg::debug("current camera position: ");
+                Saturn::debug("current camera position: ");
                 std::cout << camera.Position << "\n";
             }
         }
@@ -264,7 +261,7 @@ GLFWwindow* init_all() {
         800, 600, "LearnOpenGL for the final time!", nullptr, nullptr);
 
     if (!window) {
-        mvg::error("Failed to create window");
+        Saturn::error("Failed to create window");
         glfwDestroyWindow(window);
         glfwTerminate();
         return nullptr;
@@ -273,7 +270,7 @@ GLFWwindow* init_all() {
     glfwMakeContextCurrent(window);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        mvg::error("Failed to initialize GLAD");
+        Saturn::error("Failed to initialize GLAD");
         glfwDestroyWindow(window);
         glfwTerminate();
         return nullptr;
@@ -387,9 +384,9 @@ int main2() {
 
     glEnable(GL_DEPTH_TEST);
 
-    mvg::Texture container;
+    Saturn::Texture container;
     container.load("container2.png", GL_TEXTURE0, GL_RGBA);
-    mvg::Texture cont_specular;
+    Saturn::Texture cont_specular;
     cont_specular.load("container2_specular.png", GL_TEXTURE1, GL_RGBA);
 
     /*   auto materials = load_materials("materials.txt");
@@ -410,10 +407,10 @@ int main2() {
     //    float spotLightAngle = 12.5f;
     //    float spotLightOuterAngle = 17.5f;
 
-    mvg::LightShader ls;
-    mvg::DirectionalLight light;
-    mvg::SpotLight camLight;
-    mvg::Material mat;
+    Saturn::LightShader ls;
+    Saturn::DirectionalLight light;
+    Saturn::SpotLight camLight;
+    Saturn::Material mat;
 
     camLight.ambient = glm::vec3(0.0f, 0.0f, 0.0f);
     camLight.diffuse = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -426,9 +423,9 @@ int main2() {
     camLight.radius = glm::radians(12.5f);
     camLight.soft_radius = glm::radians(15.0f);
 
-    ls.add<mvg::SpotLight>(&camLight);
+    ls.add<Saturn::SpotLight>(&camLight);
 
-    std::array<mvg::PointLight, 4> ptLights;
+    std::array<Saturn::PointLight, 4> ptLights;
     for (int i = 0; i < 4; ++i) {
         auto& l = ptLights[i];
         l.position = pointLightPositions[i];
@@ -438,7 +435,7 @@ int main2() {
         l.linear = linear;
         l.constant = constant;
         l.quadratic = quadratic;
-        ls.add<mvg::PointLight>(&l);
+        ls.add<Saturn::PointLight>(&l);
     }
 
     float shininess = 64.0f;
@@ -451,7 +448,7 @@ int main2() {
     light.diffuse = light_diffuse;
     light.specular = light_specular;
     light.direction = glm::vec3(-0.2f, -1.0f, -0.3f);
-    ls.add<mvg::DirectionalLight>(&light);
+    ls.add<Saturn::DirectionalLight>(&light);
     ls.material = mat;
 	ls.camera = &camera;
 

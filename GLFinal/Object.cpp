@@ -2,8 +2,8 @@
 
 #include "Components.hpp"
 
-namespace mvg {
+namespace Saturn {
 
 Object::~Object() { delete_components_for_index(ID); }
 
-} // namespace mvg
+} // namespace Saturn

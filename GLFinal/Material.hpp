@@ -1,10 +1,10 @@
-#ifndef MVG_MATERIAL_HPP_
-#define MVG_MATERIAL_HPP_
+#ifndef SATURN_MATERIAL_HPP_
+#define SATURN_MATERIAL_HPP_
 
 #include "Texture.hpp"
 #include <GLM/glm.hpp>
 
-namespace mvg {
+namespace Saturn {
 
 struct Material {
     glm::vec3 ambient;
@@ -15,6 +15,6 @@ struct Material {
     float shininess;
 };
 
-} // namespace mvg
+} // namespace Saturn
 
 #endif

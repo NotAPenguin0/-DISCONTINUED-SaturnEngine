@@ -1,5 +1,5 @@
-#ifndef MVG_COMPONENTS_HPP_
-#define MVG_COMPONENTS_HPP_
+#ifndef SATURN_COMPONENTS_HPP_
+#define SATURN_COMPONENTS_HPP_
 
 #include <GLM/glm.hpp>
 #include <tuple>
@@ -7,8 +7,18 @@
 #include <vector>
 
 #include "IDGenerator.hpp"
+#include "OpenGL.hpp"
 
-namespace mvg {
+#include "Resource.hpp"
+#include "ResourceTypes.hpp"
+
+namespace Saturn {
+
+// Until we start using Quaternions
+struct RotationData {
+    glm::vec3 axis;
+    float angle;
+};
 
 namespace Components {
 
@@ -16,18 +26,21 @@ struct ComponentBase {
     ObjectIDGenerator::IDType object;
 };
 
-// Todo: make this an actual transform component (Position, Rotation, Scale) -->
-// These apply to the model matrix only
 struct Transform : ComponentBase {
     glm::vec3 position;
-    glm::vec3 rotation;
+    RotationData rotation;
     glm::vec3 scale;
 };
 
-//Temporary component, until there are better alternatives
-struct Model : ComponentBase {
-    std::vector<glm::vec3> positions;
-    std::vector<glm::vec2> colors;
+// Temporary component, until there are better alternatives
+struct Mesh : ComponentBase {
+    ResourceRef<Resources::Model> model;
+};
+
+// This component still needs more properties, like lighting maps, lighting
+// values, etc. For now we'll only support textures
+struct Material : ComponentBase {
+    ResourceRef<Resources::Texture> texture;
 };
 
 } // namespace Components
@@ -37,10 +50,9 @@ namespace detail {
 template<class... Cs>
 struct AllComponents {};
 
-#define COMPONENT ::mvg::Components::
+#define COMPONENT ::Saturn::Components::
 
-using MainComponentList =
-    AllComponents<COMPONENT Transform, COMPONENT Model>;
+using MainComponentList = AllComponents<COMPONENT Transform, COMPONENT Mesh, COMPONENT Material>;
 
 #undef COMPONENT
 
@@ -67,7 +79,7 @@ struct ComponentList {
     C const& get(IdT objId) const { return components.at(objId); }
 
     std::unordered_map<IdT, C> components;
-}; // namespace mvg
+}; // namespace Saturn
 
 template<typename C>
 ComponentList<C> components;
@@ -104,6 +116,6 @@ inline void delete_components_for_index(ObjectIDGenerator::IDType id) {
     c(id);
 }
 
-} // namespace mvg
+} // namespace Saturn
 
 #endif

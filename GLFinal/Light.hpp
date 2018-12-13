@@ -1,9 +1,9 @@
-#ifndef MVG_LIGHT_HPP_
-#define MVG_LIGHT_HPP_
+#ifndef SATURN_LIGHT_HPP_
+#define SATURN_LIGHT_HPP_
 
 #include <GLM/glm.hpp>
 
-namespace mvg {
+namespace Saturn {
 struct Light {
     glm::vec3 position;
 
@@ -33,6 +33,6 @@ struct SpotLight : public PointLight {
     float soft_radius;
 };
 
-} // namespace mvg
+} // namespace Saturn
 
 #endif

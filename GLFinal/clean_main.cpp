@@ -6,7 +6,7 @@
 #include "Object.hpp"
 #include "World.hpp"
 
-using namespace mvg;
+using namespace Saturn;
 using namespace Components;
 
 // Old main function, this runs the application we want to get eventually, but

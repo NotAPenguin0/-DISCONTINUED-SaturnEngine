@@ -2,7 +2,7 @@
 
 #include "OpenGL.hpp"
 
-namespace mvg {
+namespace Saturn {
 
 void Time::update() {
     auto currFrame = static_cast<float>(glfwGetTime());
@@ -13,4 +13,4 @@ void Time::update() {
 float Time::now()
 { return static_cast<float>(glfwGetTime()); }
 
-} // namespace mvg
+} // namespace Saturn

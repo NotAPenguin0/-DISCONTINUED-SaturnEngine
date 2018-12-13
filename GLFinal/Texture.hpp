@@ -1,9 +1,9 @@
-#ifndef MVG_TEXTURE_HPP_
-#define MVG_TEXTURE_HPP_
+#ifndef SATURN_TEXTURE_HPP_
+#define SATURN_TEXTURE_HPP_
 
 #include "glad/glad.h"
 
-namespace mvg {
+namespace Saturn {
 
 class Texture {
 public:
@@ -31,6 +31,6 @@ private:
     int w, h;
 };
 
-} // namespace mvg
+} // namespace Saturn
 
 #endif

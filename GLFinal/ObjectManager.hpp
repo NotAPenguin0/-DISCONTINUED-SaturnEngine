@@ -1,12 +1,12 @@
-#ifndef MVG_OBJECT_MANAGER_HPP_
-#define MVG_OBJECT_MANAGER_HPP_
+#ifndef SATURN_OBJECT_MANAGER_HPP_
+#define SATURN_OBJECT_MANAGER_HPP_
 
 #include <unordered_map>
 
 #include "IDGenerator.hpp"
 #include "Object.hpp"
 
-namespace mvg {
+namespace Saturn {
 
 class World;
 
@@ -17,6 +17,8 @@ public:
 
     using IDType = ObjectIDGenerator::IDType;
 
+	using storage_type = std::unordered_map<IDType, Object>;
+
     Object& get(IDType id);
     Object const& get(IDType id) const;
 
@@ -24,10 +26,10 @@ public:
     void remove(IDType id);
 
     template<typename... Args>
-    IDType emplace(Args&&... args) {
+    Object& emplace(Args&&... args) {
         auto id = idgen.next();
         objects[id] = Object(id, std::forward<Args>(args)...);
-        return id;
+        return objects[id];
     }
 
 	World& world();
@@ -44,6 +46,6 @@ private:
 
 };
 
-} // namespace mvg
+} // namespace Saturn
 
 #endif

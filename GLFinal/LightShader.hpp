@@ -1,5 +1,5 @@
-#ifndef MVG_LIGHT_SHADER_HPP_
-#define MVG_LIGHT_SHADER_HPP_
+#ifndef SATURN_LIGHT_SHADER_HPP_
+#define SATURN_LIGHT_SHADER_HPP_
 
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>
@@ -10,30 +10,23 @@
 #include "Light.hpp"
 #include "Material.hpp"
 
-namespace mvg {
+#include "Shader.hpp"
 
-namespace detail {
+namespace Saturn {
 
-unsigned int create_shader(const char* vtx_path, const char* frag_path);
 
-} // namespace detail
-
-class LightShader {
+class LightShader : public Shader {
 public:
     LightShader(const char* vertex = DefaultVertexShaderPath,
                 const char* fragment = DefaultFragmentShaderPath);
-    LightShader(LightShader const&) = delete;
-    LightShader& operator=(LightShader const&) = delete;
 
-    LightShader(LightShader&&);
-    LightShader& operator=(LightShader&&);
+    LightShader(LightShader&&) = default;
+    LightShader& operator=(LightShader&&) = default;
 
-    ~LightShader();
+    virtual ~LightShader();
 
-    unsigned int handle() const;
-
-    void use() const;
-    void update_uniforms() const;
+	void use() const override;
+    void update_uniforms() const override;
 
     template<class LightType>
     void add(LightType* l) {
@@ -48,14 +41,6 @@ public:
         }
     }
 
-    GLint location(std::string_view name) const;
-
-    // MVP matrices. Assign these first, and call update_uniforms() afterwards
-    // to apply the changes in the shader.
-    glm::mat4 model;
-    glm::mat4 view;
-    glm::mat4 projection;
-
     // update_uniforms() has to be called to apply changes
     Material material;
 
@@ -69,8 +54,6 @@ private:
     static constexpr const char* DefaultVertexShaderPath =
         "shaders/light_default_vertex.glsl";
 
-    unsigned int m_handle;
-
 	void update_directional() const;
     void update_point() const;
 	void update_spot() const;
@@ -80,6 +63,6 @@ private:
     std::vector<SpotLight*> m_spot;
 };
 
-} // namespace mvg
+} // namespace Saturn
 
 #endif

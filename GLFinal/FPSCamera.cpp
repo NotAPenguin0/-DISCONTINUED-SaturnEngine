@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-namespace mvg {
+namespace Saturn {
 
 FPSCamera::FPSCamera(glm::vec3 pos /*= glm::vec3(0.0f, 0.0f, 0.0f)*/,
                      glm::vec3 up /*= glm::vec3(0.0f, 1.0f, 0.0f)*/,
@@ -95,4 +95,4 @@ void FPSCamera::calculate_vectors() {
     Up = glm::normalize(glm::cross(Right, Front));
 }
 
-} // namespace mvg
+} // namespace Saturn

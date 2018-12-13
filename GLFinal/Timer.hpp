@@ -1,9 +1,9 @@
-#ifndef MVG_TIMER_HPP_
-#define MVG_TIMER_HPP_
+#ifndef SATURN_TIMER_HPP_
+#define SATURN_TIMER_HPP_
 
 #include <chrono>
 
-namespace mvg
+namespace Saturn
 {
 
 namespace chrono = ::std::chrono;

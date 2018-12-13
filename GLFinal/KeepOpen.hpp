@@ -1,9 +1,9 @@
-#ifndef MVG_KEEP_OPEN_HPP_
-#define MVG_KEEP_OPEN_HPP_
+#ifndef SATURN_KEEP_OPEN_HPP_
+#define SATURN_KEEP_OPEN_HPP_
 
 #include <iostream>
 
-namespace mvg {
+namespace Saturn {
 
 class KeepOpen {
 public:
@@ -15,6 +15,6 @@ public:
     }
 };
 
-} // namespace mvg
+} // namespace Saturn
 
 #endif

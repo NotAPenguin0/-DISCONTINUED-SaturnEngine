@@ -1,12 +1,12 @@
-#ifndef MVG_WINDOW_HPP_
-#define MVG_WINDOW_HPP_
+#ifndef SATURN_WINDOW_HPP_
+#define SATURN_WINDOW_HPP_
 
 #include "OpenGL.hpp"
 #include "NonCopyable.hpp"
 
 #include <string>
 
-namespace mvg {
+namespace Saturn {
 
 struct WindowSettings {
 	WindowSettings(std::string c, std::size_t w, std::size_t h);
@@ -51,6 +51,6 @@ private:
     WindowSettings wsettings;
 };
 
-} // namespace mvg
+} // namespace Saturn
 
 #endif

@@ -1,19 +1,23 @@
 #include "Application.hpp"
 #include "ErrorHandler.hpp"
+#include "Globals.hpp"
 #include "Input.hpp"
+#include "RenderSystem.hpp"
 #include "Time.hpp"
 #include "log.hpp"
-#include "RenderSystem.hpp"
 
-namespace mvg {
+namespace Saturn {
 
-Application::Application(WindowSettings winsettings) {
+Application::Application(WindowSettings winsettings) :
+    modelManager(ResourceLoaders::loadModel, ResourceLoaders::unloadModel),
+    textureManager(ResourceLoaders::loadTexture,
+                   ResourceLoaders::unloadTexture) {
     // 1. Initialize GLFW to create window
     // 2. Create window
     // 3. Initialize GLAD to initialize GLFW
 
     if (!glfwInit()) {
-        mvg::error("Failed to initialize GLFW");
+        Saturn::error("Failed to initialize GLFW");
     } else { // GLFW initialized successfully
 
         glfwWindowHint(GLFW_SAMPLES, 4);
@@ -37,7 +41,7 @@ Application::Application(WindowSettings winsettings) {
 
             // Initialize GLAD
             if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-                mvg::error("Failed to initialize GLAD");
+                Saturn::error("Failed to initialize GLAD");
                 window.destroy();
                 glfwTerminate();
             } else {
@@ -52,9 +56,85 @@ Application::Application(WindowSettings winsettings) {
     }
 }
 
+void Application::mouse_callback([[maybe_unused]] GLFWwindow* win,
+                                 double xpos,
+                                 double ypos) {
+    static bool firstMouse = true;
+    static float lastX = gWindow->width() / 2;
+    static float lastY = gWindow->height() / 2;
+
+    if (firstMouse) {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+
+    float xoffset = xpos - lastX;
+    // reversed since y-coordinates go from bottom to top
+    float yoffset = lastY - ypos;
+
+    lastX = xpos;
+    lastY = ypos;
+
+    gCamera->mouse_move(xoffset, yoffset);
+}
+
+void Application::scroll_callback([[maybe_unused]] GLFWwindow* window,
+                                  [[maybe_unused]] double xoffset,
+                                  double yoffset) {
+
+    gCamera->zoom(yoffset);
+}
+
 void Application::init() {
+    // Set globals
+    gApp = this;
+    gWorld = &world;
+    gCamera = &camera;
+    gWindow = &window;
+
+    camera.Speed = 5.0f;
+    camera.Sensitivity = 0.1f;
+    camera.Position = glm::vec3(0.0f, 0.0f, 2.0f);
+    // Bind input keys
+    glfwSetInputMode(window.handle(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     Input::bind(GLFW_KEY_ESCAPE, [this]() { quit(); });
+    Input::bind(GLFW_KEY_P, [this]() {
+        std::cout << "Current position:" << camera.Position << "\n";
+    });
+    // Setup camera movement
+    Input::setMouseCallback(&Application::mouse_callback);
+    Input::setScrollCallback(&Application::scroll_callback);
+    Input::bind(GLFW_KEY_W,
+                [this]() { camera.move(Direction::Forward, Time::deltaTime); });
+    Input::bind(GLFW_KEY_S, [this]() {
+        camera.move(Direction::Backward, Time::deltaTime);
+    });
+    Input::bind(GLFW_KEY_A,
+                [this]() { camera.move(Direction::Left, Time::deltaTime); });
+    Input::bind(GLFW_KEY_D,
+                [this]() { camera.move(Direction::Right, Time::deltaTime); });
+    Input::bind(GLFW_KEY_SPACE,
+                [this]() { camera.move(Direction::Up, Time::deltaTime); });
+    Input::bind(GLFW_KEY_LEFT_SHIFT,
+                [this]() { camera.move(Direction::Down, Time::deltaTime); });
+    // Set systems
     world.addSystem<Systems::RenderSystem>();
+
+    // Temporary object for testing purposes
+    auto& objects = world.objects;
+
+    auto& cube = objects.emplace();
+    cube.addComponent<Components::Mesh>();
+    cube.addComponent<Components::Transform>();
+    cube.addComponent<Components::Material>();
+    auto& model = cube.getComponent<Components::Mesh>();
+    auto& trans = cube.getComponent<Components::Transform>();
+    auto& mat = cube.getComponent<Components::Material>();
+    model.model = modelManager.get("resources/temp/vertices.txt");
+    trans.position = glm::vec3(0.0f, 0.0f, 0.0f);
+    trans.rotation = {glm::vec3(1.0f), 0.0f};
+    trans.scale = glm::vec3(1.0f);
 }
 
 Application::~Application() {
@@ -65,13 +145,13 @@ Application::~Application() {
 
 void Application::run() {
 
-	world.onStart();
+    world.onStart();
 
     while (!glfwWindowShouldClose(window.handle())) {
         Time::update();
         Input::update(window);
 
-		world.onUpdate();
+        world.onUpdate();
 
         glfwSwapBuffers(window.handle());
         glfwPollEvents();
@@ -80,4 +160,4 @@ void Application::run() {
 
 void Application::quit() { glfwSetWindowShouldClose(window.handle(), true); }
 
-} // namespace mvg
+} // namespace Saturn

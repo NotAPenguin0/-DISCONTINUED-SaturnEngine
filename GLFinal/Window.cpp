@@ -3,7 +3,7 @@
 
 #include <utility>
 
-namespace mvg {
+namespace Saturn {
 
 WindowSettings::WindowSettings(std::string c, std::size_t w, std::size_t h) :
     caption(c), width(w), height(h) {}
@@ -15,7 +15,7 @@ Window::Window(WindowSettings settings) : win(nullptr) {
         settings.width, settings.height, settings.caption.c_str(),
         settings.fullscreen ? glfwGetPrimaryMonitor() : nullptr, nullptr);
     if (win == nullptr) {
-        mvg::error("FATAL ERROR: Failed to create window");
+        Saturn::error("FATAL ERROR: Failed to create window");
     } else {
         wsettings = settings;
     }
@@ -74,4 +74,4 @@ void Window::set_fullscreen(bool f) {
     wsettings.fullscreen = f;
 }
 
-} // namespace mvg
+} // namespace Saturn

@@ -1,6 +1,6 @@
 #include "World.hpp"
 
-namespace mvg {
+namespace Saturn {
 
 World::World() { objects.set_world(this); }
 
@@ -18,4 +18,4 @@ void World::onStart() {
     }
 }
 
-} // namespace mvg
+} // namespace Saturn

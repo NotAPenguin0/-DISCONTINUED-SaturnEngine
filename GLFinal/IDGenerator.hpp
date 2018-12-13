@@ -1,7 +1,7 @@
-#ifndef MVG_ID_GENERATOR_HPP_
-#define MVG_ID_GENERATOR_HPP_
+#ifndef SATURN_ID_GENERATOR_HPP_
+#define SATURN_ID_GENERATOR_HPP_
 
-namespace mvg {
+namespace Saturn {
 
 class ObjectIDGenerator {
 public:
@@ -12,6 +12,6 @@ public:
     }
 };
 
-} // namespace mvg
+} // namespace Saturn
 
 #endif

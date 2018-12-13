@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -168,17 +168,20 @@
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="clean_main.cpp" />
-    <ClCompile Include="Components.cpp" />
     <ClCompile Include="depend\log++.cpp" />
     <ClCompile Include="ErrorHandler.cpp" />
     <ClCompile Include="FPSCamera.cpp" />
     <ClCompile Include="glad\src\glad.cpp" />
+    <ClCompile Include="Globals.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="LightShader.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="ObjectManager.cpp" />
+    <ClCompile Include="OpenGL.cpp" />
     <ClCompile Include="RenderSystem.cpp" />
+    <ClCompile Include="ResourceLoaders.cpp" />
+    <ClCompile Include="Shader.cpp" />
     <ClCompile Include="stb_image.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="Time.cpp" />
@@ -192,6 +195,7 @@
     <ClInclude Include="ErrorHandler.hpp" />
     <ClInclude Include="FPSCamera.hpp" />
     <ClInclude Include="depend\stb_image.h" />
+    <ClInclude Include="Globals.hpp" />
     <ClInclude Include="IDGenerator.hpp" />
     <ClInclude Include="Input.hpp" />
     <ClInclude Include="Object.hpp" />
@@ -204,11 +208,18 @@
     <ClInclude Include="Material.hpp" />
     <ClInclude Include="NonCopyable.hpp" />
     <ClInclude Include="RenderSystem.hpp" />
+    <ClInclude Include="Resource.hpp" />
+    <ClInclude Include="ResourceLoaders.hpp" />
+    <ClInclude Include="ResourceTypes.hpp" />
+    <ClInclude Include="Shader.hpp" />
     <ClInclude Include="Texture.hpp" />
     <ClInclude Include="Time.hpp" />
     <ClInclude Include="Timer.hpp" />
     <ClInclude Include="Window.hpp" />
     <ClInclude Include="World.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="resources\temp\vertices.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,13 +1,12 @@
-#ifndef MVG_FPS_CAMERA_HPP_
-#define MVG_FPS_CAMERA_HPP_
+#ifndef SATURN_FPS_CAMERA_HPP_
+#define SATURN_FPS_CAMERA_HPP_
 
 #include <GLM/glm.hpp>
 #include <GLM/gtc/matrix_transform.hpp>
 
-#include "glad/glad.h"
-#include <GLFW/glfw3.h>
+#include "OpenGL.hpp"
 
-namespace mvg {
+namespace Saturn {
 
 enum class Direction { Forward, Backward, Left, Right, Up, Down };
 
@@ -56,6 +55,6 @@ private:
     static constexpr float ZOOM = 45.0f;
 };
 
-} // namespace mvg
+} // namespace Saturn
 
 #endif

@@ -1,7 +1,7 @@
 #include "ObjectManager.hpp"
 #include "World.hpp"
 
-namespace mvg {
+namespace Saturn {
 
 Object& ObjectManager::get(IDType id) { return objects[id]; }
 
@@ -21,4 +21,4 @@ World const& ObjectManager::world() const { return *w; }
 void ObjectManager::set_world(World* wptr)
 { w = wptr; }
 
-} // namespace mvg
+} // namespace Saturn
