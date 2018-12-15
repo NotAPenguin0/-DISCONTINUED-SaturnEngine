@@ -21,6 +21,11 @@ struct Texture {
     int width, height;
 };
 
+struct Shader
+{
+	GLuint handle;
+};
+
 } // namespace Resources
 
 } // namespace Saturn

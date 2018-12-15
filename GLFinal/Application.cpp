@@ -11,7 +11,8 @@ namespace Saturn {
 Application::Application(WindowSettings winsettings) :
     modelManager(ResourceLoaders::loadModel, ResourceLoaders::unloadModel),
     textureManager(ResourceLoaders::loadTexture,
-                   ResourceLoaders::unloadTexture) {
+                   ResourceLoaders::unloadTexture),
+    shaderManager(ResourceLoaders::loadShader, ResourceLoaders::unloadShader) {
     // 1. Initialize GLFW to create window
     // 2. Create window
     // 3. Initialize GLAD to initialize GLFW
@@ -93,6 +94,7 @@ void Application::init() {
     gCamera = &camera;
     gWindow = &window;
 
+	//Setup camera variables
     camera.Speed = 5.0f;
     camera.Sensitivity = 0.1f;
     camera.Position = glm::vec3(0.0f, 0.0f, 2.0f);
@@ -127,15 +129,15 @@ void Application::init() {
     auto& cube = objects.emplace();
     cube.addComponent<Components::Mesh>();
     cube.addComponent<Components::Transform>();
-    cube.addComponent<Components::Material>();
+    cube.addComponent<Components::Shader>();
     auto& model = cube.getComponent<Components::Mesh>();
     auto& trans = cube.getComponent<Components::Transform>();
-    auto& mat = cube.getComponent<Components::Material>();
+    auto& shader = cube.getComponent<Components::Shader>();
+    shader.shader = shaderManager.get("resources/shaders/default.sh");
     model.model = modelManager.get("resources/temp/vertices.txt");
     trans.position = glm::vec3(0.0f, 0.0f, 0.0f);
     trans.rotation = {glm::vec3(1.0f), 0.0f};
     trans.scale = glm::vec3(1.0f);
-    mat.texture = textureManager.get("resources/temp/container2.png");
 }
 
 Application::~Application() {

@@ -35,6 +35,7 @@ private:
     World world;
     ResourceManager<Resources::Model> modelManager;
     ResourceManager<Resources::Texture> textureManager;
+    ResourceManager<Resources::Shader> shaderManager;
     FPSCamera camera;
 };
 

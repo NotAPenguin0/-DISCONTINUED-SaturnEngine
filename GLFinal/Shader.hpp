@@ -10,6 +10,8 @@
 
 namespace Saturn {
 
+namespace deleted {
+
 namespace detail {
 unsigned int create_shader(const char* vtx_path, const char* frag_path);
 }
@@ -35,6 +37,8 @@ public:
 private:
     GLuint m_handle;
 };
+
+} // namespace deleted
 
 } // namespace Saturn
 

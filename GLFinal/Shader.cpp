@@ -9,6 +9,9 @@
 
 namespace Saturn {
 
+namespace deleted
+	{
+
 namespace detail {
 
 unsigned int create_shader(const char* vtx_path, const char* frag_path) {
@@ -137,6 +140,8 @@ void Shader::update_uniforms() const {
 
 GLint Shader::location(std::string_view name) const {
     return glGetUniformLocation(handle(), name.data());
+}
+
 }
 
 } // namespace Saturn

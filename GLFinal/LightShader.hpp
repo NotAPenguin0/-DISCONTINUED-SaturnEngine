@@ -14,6 +14,7 @@
 
 namespace Saturn {
 
+namespace deleted {
 
 class LightShader : public Shader {
 public:
@@ -25,7 +26,7 @@ public:
 
     virtual ~LightShader();
 
-	void use() const override;
+    void use() const override;
     void update_uniforms() const override;
 
     template<class LightType>
@@ -54,14 +55,16 @@ private:
     static constexpr const char* DefaultVertexShaderPath =
         "shaders/light_default_vertex.glsl";
 
-	void update_directional() const;
+    void update_directional() const;
     void update_point() const;
-	void update_spot() const;
+    void update_spot() const;
 
     std::vector<DirectionalLight*> m_directional;
     std::vector<PointLight*> m_point;
     std::vector<SpotLight*> m_spot;
 };
+
+} // namespace deleted
 
 } // namespace Saturn
 

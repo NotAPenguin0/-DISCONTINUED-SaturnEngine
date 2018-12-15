@@ -37,16 +37,15 @@ struct Mesh : ComponentBase {
     ResourceRef<Resources::Model> model;
 };
 
-// This component still needs more properties, like lighting maps, lighting
-// values, etc. For now we'll only support textures
-struct Material : ComponentBase {
-    ResourceRef<Resources::Texture> texture;
+
+struct Shader : ComponentBase {
+    ResourceRef<Resources::Shader> shader;
 };
 
 struct Lights : ComponentBase {
     std::vector<DirectionalLight> directionalLights;
     std::vector<PointLight> pointLights;
-	std::vector<SpotLight> spotLights;
+    std::vector<SpotLight> spotLights;
 };
 
 } // namespace Components
@@ -58,8 +57,10 @@ struct AllComponents {};
 
 #define COMPONENT ::Saturn::Components::
 
-using MainComponentList =
-    AllComponents<COMPONENT Transform, COMPONENT Mesh, COMPONENT Material, COMPONENT Lights>;
+using MainComponentList = AllComponents<COMPONENT Transform,
+                                        COMPONENT Mesh,
+                                        COMPONENT Lights,
+                                        COMPONENT Shader>;
 
 #undef COMPONENT
 

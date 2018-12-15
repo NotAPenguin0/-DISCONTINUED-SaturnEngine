@@ -31,8 +31,9 @@ bool ResourceLoaders::loadModel(std::string path, Resources::Model& model) {
     //			   color
     //			   normal
     //			   texcoord
-    //"data" (without quotes, this one is important, the model will fail to load if you omit this)
-    //[All vertex data, space separated with newlines where wanted]
+    //"data" (without quotes, this one is important, the model will fail to load
+    // if you omit this) [All vertex data, space separated with newlines where
+    // wanted]
 
     // Set attribute metadata and supported attributes
     static std::array supported_attributes{"position"s, "color"s, "normal"s,
@@ -43,7 +44,7 @@ bool ResourceLoaders::loadModel(std::string path, Resources::Model& model) {
         std::size_t location;
     };
 
-#define DECLARE_ATTRIBUTE(name, size, location)                        \
+#define DECLARE_ATTRIBUTE(name, size, location)                                \
     static AttributeMetaData name{size, location}
 
     DECLARE_ATTRIBUTE(position, 3, 0);
@@ -103,7 +104,7 @@ bool ResourceLoaders::loadModel(std::string path, Resources::Model& model) {
                               GL_FALSE, totalSize * sizeof(float),
                               (void*)(offset * sizeof(float)));
         glEnableVertexAttribArray(metadata.location);
-		offset += metadata.size;
+        offset += metadata.size;
     }
 
     // Unbind the buffer and VAO object
@@ -179,6 +180,108 @@ bool ResourceLoaders::loadTexture(std::string path,
 
 void ResourceLoaders::unloadTexture(Resources::Texture& texture) {
     glDeleteTextures(1, &texture.handle);
+}
+
+bool ResourceLoaders::loadShader(std::string path, Resources::Shader& shader) {
+    // A shader file has 2 entries:
+    // 1. The path to the vertex shader
+    // 2. The path to the fragment shader
+
+    std::ifstream file(path);
+    std::string vtx, frag;
+    file >> vtx >> frag;
+    using namespace std::literals::string_literals;
+
+    file.close();
+    file.open(vtx);
+
+    if (!file.good()) {
+        Saturn::error(
+            "[SHADER::VERTEX]: failed to open vertex shader source file at path: "s +
+            vtx);
+        return false;
+    }
+
+    std::stringstream buf;
+    buf << file.rdbuf();
+
+    std::string vtx_source(buf.str());
+
+    file.close();
+    buf = std::stringstream{}; // reset buffer
+    file.open(frag);
+
+    if (!file.good()) {
+        Saturn::error(
+            "[SHADER::FRAGMENT]: failed to open fragment shader source file at path: "s +
+            frag);
+        return false;
+    }
+
+    buf << file.rdbuf();
+
+    std::string frag_source(buf.str());
+
+    unsigned int vtx_shader, frag_shader;
+    vtx_shader = glCreateShader(GL_VERTEX_SHADER);
+    frag_shader = glCreateShader(GL_FRAGMENT_SHADER);
+    // This is wrapped inside a lambda to limit the scope of vtx_carr and
+    // frag_carr
+    [&vtx_source, &frag_source, &vtx_shader, &frag_shader]() {
+        const char* vtx_carr = vtx_source.c_str();
+        const char* frag_carr = frag_source.c_str();
+        glShaderSource(vtx_shader, 1, &vtx_carr, nullptr);
+        glShaderSource(frag_shader, 1, &frag_carr, nullptr);
+    }();
+
+    glCompileShader(vtx_shader);
+    glCompileShader(frag_shader);
+
+    // Now, check for compilation errors
+    int success;
+    char infolog[512];
+    glGetShaderiv(vtx_shader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(vtx_shader, 512, nullptr, infolog);
+        Saturn::error("[SHADER::VERTEX::COMPILATION_FAILED]: "s + infolog);
+        return false;
+    }
+
+    // And again for the fragment shader
+    glGetShaderiv(frag_shader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(frag_shader, 512, nullptr, infolog);
+        Saturn::error("[SHADER::FRAGMENT::COMPILATION_FAILED]: "s + infolog);
+        return false;
+    }
+
+    // Finally, link the vertex and fragment shader together
+    unsigned int shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, vtx_shader);
+    glAttachShader(shaderProgram, frag_shader);
+    glLinkProgram(shaderProgram);
+
+    // Check for errors
+    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+    if (!success) {
+        glGetProgramInfoLog(shaderProgram, 512, nullptr, infolog);
+        Saturn::error("[SHADER::LINK_FAILED]: "s + infolog);
+        return false;
+    }
+
+    // These are linked now and can safely be deleted
+    glDeleteShader(vtx_shader);
+    glDeleteShader(frag_shader);
+
+    shader.handle = shaderProgram;
+
+    return true;
+}
+
+void ResourceLoaders::unloadShader(Resources::Shader& shader)
+{
+    glDeleteProgram(shader.handle);
+    shader.handle = 0;
 }
 
 } // namespace Saturn

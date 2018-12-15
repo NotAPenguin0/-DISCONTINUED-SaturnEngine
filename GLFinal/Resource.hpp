@@ -6,6 +6,8 @@
 #include <string>
 #include <unordered_map>
 
+#include "log.hpp"
+
 namespace Saturn {
 
 struct RefCount {
@@ -121,8 +123,9 @@ public:
                 auto& res = resources.at(k);
                 return ResourceRef<R>(&res.first, &res.second, this);
             } else {
-                throw std::runtime_error("Failed to load resource with key: " +
+                Saturn::error("Failed to load resource with key: " +
                                          std::string(k));
+                return ResourceRef<R>();
             }
         }
     }

@@ -407,7 +407,7 @@ int main2() {
     //    float spotLightAngle = 12.5f;
     //    float spotLightOuterAngle = 17.5f;
 
-    Saturn::LightShader ls;
+    Saturn::deleted::LightShader ls;
     Saturn::DirectionalLight light;
     Saturn::SpotLight camLight;
     Saturn::Material mat;

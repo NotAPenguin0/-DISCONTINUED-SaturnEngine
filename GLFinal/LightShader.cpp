@@ -8,6 +8,8 @@
 
 namespace Saturn {
 
+namespace deleted
+	{
 
 LightShader::LightShader(
     const char* vertex /* = DefaultVertexShaderPath */,
@@ -133,6 +135,8 @@ void LightShader::update_spot() const {
         glUniform1f(location(full_name + "outerCutOff"),
                     glm::cos(light->soft_radius));
     }
+}
+
 }
 
 } // namespace Saturn

@@ -3,7 +3,8 @@
 
 #include "ComponentSystem.hpp"
 #include "Components.hpp"
-#include "Shader.hpp"
+#include "Resource.hpp"
+#include "ResourceTypes.hpp"
 
 namespace Saturn {
 
@@ -23,15 +24,17 @@ public:
     static constexpr const char* texturedFragmentPath =
         "resources/shaders/textured_f.glsl";
 
-    static inline Shader defaultShader;
-    static inline Shader texturedShader;
-
     SYSTEM_CONSTRUCTOR(RenderSystem)
 
-    using Components = ListComponents<Transform, Mesh>;
+    using RenderComponents = ListComponents<Transform, Mesh, Shader>;
 
     void onStart() override;
     void onUpdate() override;
+
+    void setShaderUniforms(Components::Shader& shader,
+                           glm::mat4 const& model,
+                           glm::mat4 const& view,
+                           glm::mat4 const& projection);
 };
 
 } // namespace Systems

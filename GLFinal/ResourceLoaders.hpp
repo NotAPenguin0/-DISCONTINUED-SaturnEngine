@@ -15,9 +15,11 @@ public:
     static bool loadModel(std::string path, Resources::Model& model);
     static void unloadModel(Resources::Model& model);
 
-	static bool loadTexture(std::string path,
-                                   Resources::Texture& texture);
+    static bool loadTexture(std::string path, Resources::Texture& texture);
     static void unloadTexture(Resources::Texture& texture);
+
+    static bool loadShader(std::string path, Resources::Shader& shader);
+    static void unloadShader(Resources::Shader& shader);
 };
 
 } // namespace Saturn
