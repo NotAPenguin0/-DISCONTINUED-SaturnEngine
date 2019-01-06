@@ -23,6 +23,16 @@ public:
     void run();
     void quit();
 
+    template<typename R>
+    ResourceManager<R>& getResourceManager() {
+        if constexpr (std::is_same_v<R, Resources::Model>)
+            return modelManager;
+        if constexpr (std::is_same_v<R, Resources::Texture>)
+            return textureManager;
+        if constexpr (std::is_same_v<R, Resources::Shader>)
+            return shaderManager;
+    }
+
 private:
     static void mouse_callback([[maybe_unused]] GLFWwindow* win,
                                double xpos,
@@ -37,6 +47,13 @@ private:
     ResourceManager<Resources::Texture> textureManager;
     ResourceManager<Resources::Shader> shaderManager;
     FPSCamera camera;
+
+    ResourceRef<Resources::Shader> defaultShader;
+    ResourceRef<Resources::Shader> texturedShader;
+    ResourceRef<Resources::Shader> lightShader;
+
+    // Testing
+    int cubeId;
 };
 
 } // namespace Saturn

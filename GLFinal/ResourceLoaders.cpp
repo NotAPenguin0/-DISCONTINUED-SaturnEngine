@@ -37,7 +37,7 @@ bool ResourceLoaders::loadModel(std::string path, Resources::Model& model) {
 
     // Set attribute metadata and supported attributes
     static std::array supported_attributes{"position"s, "color"s, "normal"s,
-                                           "texcoord"s};
+                                           "texcoords"s};
 
     struct AttributeMetaData {
         std::size_t size;
@@ -61,7 +61,7 @@ bool ResourceLoaders::loadModel(std::string path, Resources::Model& model) {
             return color;
         else if (name == "normal")
             return normal;
-        else if (name == "texcoord")
+        else if (name == "texcoords")
             return texcoord;
         else
             return AttributeMetaData{0, 0};
@@ -131,7 +131,6 @@ bool ResourceLoaders::loadTexture(std::string path,
 
     int unit;
     file >> unit;
-    unit += GL_TEXTURE0; // Make it relative to GL_TEXTURE0
     texture.unit = unit; // Now set the unit value
 
     std::string imgPath;
@@ -142,7 +141,7 @@ bool ResourceLoaders::loadTexture(std::string path,
 
     int channels;
     unsigned char* data =
-        stbi_load(path.c_str(), &texture.width, &texture.height, &channels, 0);
+        stbi_load(imgPath.c_str(), &texture.width, &texture.height, &channels, 0);
     if (data == nullptr) {
         Saturn::error("Failed to load texture: " + path);
         return false;
@@ -158,7 +157,7 @@ bool ResourceLoaders::loadTexture(std::string path,
 
     // Generate texture handle
     glGenTextures(1, &texture.handle);
-    glActiveTexture(texture.unit);
+    glActiveTexture(texture.unit + GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture.handle);
 
     // Set texture parameters

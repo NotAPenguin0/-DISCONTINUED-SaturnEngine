@@ -14,19 +14,15 @@ using namespace Components;
 
 class RenderSystem : public ComponentSystem {
 public:
-    static constexpr const char* defaultVertexPath =
-        "resources/shaders/default_v.glsl";
-    static constexpr const char* defaultFragmentPath =
-        "resources/shaders/default_f.glsl";
+    static constexpr unsigned int MainTextureUnit = 0;
+    static constexpr unsigned int DiffuseMapTextureUnit = 0;
+    static constexpr unsigned int SpecularMapTextureUnit = 1;
 
-    static constexpr const char* texturedVertexPath =
-        "resources/shaders/textured_v.glsl";
-    static constexpr const char* texturedFragmentPath =
-        "resources/shaders/textured_f.glsl";
+    ResourceRef<Resources::Shader> lightShader;
 
     SYSTEM_CONSTRUCTOR(RenderSystem)
 
-    using RenderComponents = ListComponents<Transform, Mesh, Shader>;
+    using RenderComponents = ListComponents<Transform, Mesh, Shader, Material>;
 
     void onStart() override;
     void onUpdate() override;
@@ -35,6 +31,15 @@ public:
                            glm::mat4 const& model,
                            glm::mat4 const& view,
                            glm::mat4 const& projection);
+    void setupLightingUniforms(Components::Shader& shader);
+    void directionalUniforms(Components::Shader& shader,
+                             std::vector<DirectionalLight*> const& lights);
+    void pointUniforms(Components::Shader& shader,
+                       std::vector<PointLight*> const& lights);
+    void spotUniforms(Components::Shader& shader,
+                      std::vector<SpotLight*> const& lights);
+
+    int location(Components::Shader& shader, std::string name);
 };
 
 } // namespace Systems

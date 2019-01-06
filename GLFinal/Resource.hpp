@@ -18,6 +18,10 @@ struct RefCount {
 template<class R, class K = std::string>
 class ResourceManager;
 
+struct NullResourceT {};
+
+extern NullResourceT null_resource;
+
 template<class R>
 class ResourceRef {
 public:
@@ -34,6 +38,8 @@ public:
         res = nullptr;
         refs = nullptr;
     }
+
+    ResourceRef(NullResourceT) : ResourceRef() {}
 
     ResourceRef(ResourceRef const& rhs) {
         rhs.refs->count++;
@@ -54,6 +60,13 @@ public:
         refs = rhs.refs;
 
         return *this;
+    }
+
+    ResourceRef& operator=(NullResourceT) {
+        refs->count--;
+        man = nullptr;
+        res = nullptr;
+        refs = nullptr;
     }
 
     ~ResourceRef() {
@@ -89,6 +102,10 @@ public:
         return get();
     }
 
+    bool operator==(NullResourceT) { return res == nullptr; }
+
+    bool operator!=(NullResourceT) { return res != nullptr; }
+
 private:
     template<class Res, class Key>
     friend class ResourceManager;
@@ -119,12 +136,13 @@ public:
         {
             R r;
             if (load_function(k, r)) {
-                resources.emplace(k, std::pair<R, RefCount>{std::move(r), RefCount{}});
+                resources.emplace(
+                    k, std::pair<R, RefCount>{std::move(r), RefCount{}});
                 auto& res = resources.at(k);
                 return ResourceRef<R>(&res.first, &res.second, this);
             } else {
                 Saturn::error("Failed to load resource with key: " +
-                                         std::string(k));
+                              std::string(k));
                 return ResourceRef<R>();
             }
         }

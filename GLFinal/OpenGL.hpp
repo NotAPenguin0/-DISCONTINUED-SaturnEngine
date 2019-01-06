@@ -11,4 +11,8 @@
 
 std::ostream& operator<<(std::ostream& out, glm::vec3 const& vec);
 
+void enable_gl_option(GLenum option);
+void disable_gl_option(GLenum option);
+
+
 #endif

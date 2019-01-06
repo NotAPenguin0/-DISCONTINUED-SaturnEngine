@@ -12,12 +12,15 @@
 #include "Resource.hpp"
 #include "ResourceTypes.hpp"
 
+
 namespace Saturn {
+
+class FPSCamera;
 
 // Until we start using Quaternions
 struct RotationData {
-    glm::vec3 axis;
-    float angle;
+    glm::vec3 axis = glm::vec3(1.0f, 1.0f, 1.0f);
+    float angle = 0.0f;
 };
 
 namespace Components {
@@ -37,15 +40,34 @@ struct Mesh : ComponentBase {
     ResourceRef<Resources::Model> model;
 };
 
+struct Material : ComponentBase {
+    ResourceRef<Resources::Texture> texture = null_resource;
+
+    struct Lighting {
+        ResourceRef<Resources::Texture> diffuseMap = null_resource;
+        ResourceRef<Resources::Texture> specularMap = null_resource;
+        glm::vec3 ambient;
+        float shininess;
+    } lighting;
+};
 
 struct Shader : ComponentBase {
     ResourceRef<Resources::Shader> shader;
+    // Specifies whether lighting should affect the object this component is
+    // attached to
+    bool lit = true;
 };
 
 struct Lights : ComponentBase {
     std::vector<DirectionalLight> directionalLights;
     std::vector<PointLight> pointLights;
     std::vector<SpotLight> spotLights;
+};
+
+// If an object has a CamLight, we assume it has a Lights component, with the
+// camera light at spotLights[0]
+struct CamLight : ComponentBase {
+    FPSCamera* camera;
 };
 
 } // namespace Components
@@ -60,7 +82,9 @@ struct AllComponents {};
 using MainComponentList = AllComponents<COMPONENT Transform,
                                         COMPONENT Mesh,
                                         COMPONENT Lights,
-                                        COMPONENT Shader>;
+                                        COMPONENT Shader,
+                                        COMPONENT Material,
+                                        COMPONENT CamLight>;
 
 #undef COMPONENT
 

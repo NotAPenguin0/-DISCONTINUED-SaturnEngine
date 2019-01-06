@@ -13,7 +13,7 @@ public:
 
 	~Texture();
 
-    bool load(const char* fname, int unit = GL_TEXTURE0, int format = GL_RGB);
+    bool load(const char* fname, int unit = GL_TEXTURE0, int format = GL_RGB, bool flip = false);
 	
 	void bind() const;
     void unbind() const;

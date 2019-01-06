@@ -43,8 +43,6 @@ void LightShader::update_uniforms() const {
     update_directional();
     update_point();
     update_spot();
-
-    
 }
 
 void LightShader::update_directional() const {

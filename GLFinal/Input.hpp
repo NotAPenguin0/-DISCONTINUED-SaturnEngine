@@ -4,14 +4,14 @@
 #include <functional>
 #include <unordered_map>
 
-#include "Globals.hpp"
 #include "OpenGL.hpp"
+#include "Window.hpp"
 
 namespace Saturn {
 
 class Window;
 
-class Input {
+class Input { 
 public:
     enum class Action { Scroll, MouseMove, Keypress };
 
@@ -25,23 +25,20 @@ public:
 
     // Callback should void(GLFWWindow*, double, double)
     template<typename Callback>
-    static void setMouseCallback(Callback&& cb) {
-        glfwSetCursorPosCallback(gWindow->handle(), cb);
+    static void setMouseCallback(Window& win, Callback&& cb) {
+        glfwSetCursorPosCallback(win.handle(), cb);
     }
 
 	//Callback should be void(GLFWWindow*, double, double)
     template<typename Callback>
-    static void setScrollCallback(Callback&& cb) {
-        glfwSetScrollCallback(gWindow->handle(), cb);
+    static void setScrollCallback(Window& win, Callback&& cb) {
+        glfwSetScrollCallback(win.handle(), cb);
     }
 
     static bool key_pressed(Window& win, KeyT key);
-
-private:
-    friend class Application;
-
     static void update(Window& win);
 
+private:
     static std::unordered_map<KeyT, CallbackT> keybinds;
 };
 

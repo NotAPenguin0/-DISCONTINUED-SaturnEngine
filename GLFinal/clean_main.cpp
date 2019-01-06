@@ -13,16 +13,21 @@ using namespace Components;
 // in a cleaner and more flexible way
 int main2();
 
+int newest_main();
+
+// #TODO:
+// -Fix specular lighting maps
+// -Lights are assigned to objects!! WRONG!!! HAS TO BE INDEPENDANT!!
+
 int main() {
 
-    /*   main2();
-     */
+    newest_main();
 
     KeepOpen k; // Keep the console open on windows
-    Application app(WindowSettings("Hello Engine!", 800, 600));
+    //    Application app(WindowSettings("Saturn Engine", 800, 600));
     // Run the application. This enters the main loop, and blocks the current
     // thread until the application quits
-    app.run();
+    //    app.run();
 
     return 0;
 }

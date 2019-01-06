@@ -1,45 +1,31 @@
-#ifndef SATURN_SHADER_HPP_
-#define SATURN_SHADER_HPP_
-
-#include "NonCopyable.hpp"
-#include "OpenGL.hpp"
-
-#include <string_view>
+#ifndef MVG_SHADER_HPP_
+#define MVG_SHADER_HPP_
 
 #include <GLM/glm.hpp>
 
-namespace Saturn {
+#include <string_view>
 
-namespace deleted {
-
-namespace detail {
-unsigned int create_shader(const char* vtx_path, const char* frag_path);
-}
-
-class Shader : public NonCopyable {
+class Shader {
 public:
     Shader() = default;
-    Shader(const char* vtx, const char* frag);
+    Shader(const char* vtx_source, const char* frag_source);
     Shader(Shader&& rhs);
-    Shader& operator=(Shader&& rhs);
-    virtual ~Shader();
+	Shader& operator=(Shader&& rhs);
 
-    unsigned int handle() const;
-    virtual void use() const;
-    virtual void update_uniforms() const;
+    unsigned int handle();
+    void use();
 
-    GLint location(std::string_view name) const;
+    void set_int(std::string_view name, int value);
+    void set_float(std::string_view name, float value);
+    //#Optimize maybe const ref or ref
+    void set_vec3(std::string_view name, glm::vec3 value);
+    void set_vec4(std::string_view name, glm::vec4 value);
+    void set_mat4(std::string_view name, glm::mat4 value);
 
-    glm::mat4 model = glm::mat4(1.0);
-    glm::mat4 view = glm::mat4(1.0);
-    glm::mat4 projection = glm::mat4(1.0);
+    int location(std::string_view name);
 
 private:
-    GLuint m_handle;
+    unsigned int program;
 };
-
-} // namespace deleted
-
-} // namespace Saturn
 
 #endif

@@ -1,20 +1,15 @@
 #include "Shader.hpp"
 
 #include <fstream>
+#include <sstream>
 #include <string>
 
 #include <GLM/gtc/type_ptr.hpp>
 
+#include "OpenGL.hpp"
 #include "log.hpp"
 
-namespace Saturn {
-
-namespace deleted
-	{
-
-namespace detail {
-
-unsigned int create_shader(const char* vtx_path, const char* frag_path) {
+static unsigned int create_shader(const char* vtx_path, const char* frag_path) {
     using namespace std::literals::string_literals;
 
     std::fstream file(vtx_path);
@@ -67,7 +62,9 @@ unsigned int create_shader(const char* vtx_path, const char* frag_path) {
     glGetShaderiv(vtx_shader, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(vtx_shader, 512, nullptr, infolog);
-        Saturn::error("[SHADER::VERTEX::COMPILATION_FAILED]: "s + infolog);
+        ::Saturn::error("Failed to compile vertex shader at path: "s +
+                        vtx_path);
+        ::Saturn::error("[SHADER::VERTEX::COMPILATION_FAILED]: "s + infolog);
         return -1;
     }
 
@@ -75,7 +72,9 @@ unsigned int create_shader(const char* vtx_path, const char* frag_path) {
     glGetShaderiv(frag_shader, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(frag_shader, 512, nullptr, infolog);
-        Saturn::error("[SHADER::FRAGMENT::COMPILATION_FAILED]: "s + infolog);
+        ::Saturn::error("Failed to compile fragment shader at path: "s +
+                        frag_path);
+        ::Saturn::error("[SHADER::FRAGMENT::COMPILATION_FAILED]: "s + infolog);
         return -1;
     }
 
@@ -89,7 +88,9 @@ unsigned int create_shader(const char* vtx_path, const char* frag_path) {
     glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
     if (!success) {
         glGetProgramInfoLog(shaderProgram, 512, nullptr, infolog);
-        Saturn::error("[SHADER::LINK_FAILED]: "s + infolog);
+        ::Saturn::error("Failed to link shader. Vertex\n: "s + vtx_path +
+                        "\nFragment: "s + frag_path);
+        ::Saturn::error("[SHADER::LINK_FAILED]: "s + infolog);
         return -1;
     }
 
@@ -100,48 +101,49 @@ unsigned int create_shader(const char* vtx_path, const char* frag_path) {
     return shaderProgram;
 }
 
-} // namespace detail
-
-Shader::Shader(const char* vtx, const char* frag) {
-    m_handle = detail::create_shader(vtx, frag);
+Shader::Shader(const char* vtx_source, const char* frag_source) {
+    program = create_shader(vtx_source, frag_source);
 }
 
-Shader::Shader(Shader&& rhs) : m_handle(rhs.m_handle) { rhs.m_handle = 0; }
+Shader::Shader(Shader&& rhs) {
+    program = rhs.program;
+    rhs.program = 0;
+}
 
 Shader& Shader::operator=(Shader&& rhs) {
-    m_handle = rhs.m_handle;
-    rhs.m_handle = 0;
+    program = rhs.program;
+    rhs.program = 0;
+
     return *this;
 }
 
-Shader::~Shader() { glDeleteProgram(m_handle); }
+unsigned int Shader::handle() { return program; }
 
-unsigned int Shader::handle() const { return m_handle; }
+void Shader::use() { glUseProgram(program); }
 
-void Shader::use() const { glUseProgram(m_handle); }
-
-GLint checked_loc(Shader const* s, std::string_view n)
-{
-    auto l = glGetUniformLocation(s->handle(), n.data());
-    if (l == -1) throw std::runtime_error("uniform not found");
-    return l;
+void Shader::set_int(std::string_view name, int value) {
+    glUniform1i(location(name), value);
 }
 
-#define xlocation(n) checked_loc(this, n)
-
-void Shader::update_uniforms() const {
-
-    // Update MVP matrices
-    glUniformMatrix4fv(location("model"), 1, GL_FALSE, glm::value_ptr(model));
-    glUniformMatrix4fv(location("view"), 1, GL_FALSE, glm::value_ptr(view));
-    glUniformMatrix4fv(location("projection"), 1, GL_FALSE,
-                       glm::value_ptr(projection));
+void Shader::set_float(std::string_view name, float value) {
+    glUniform1f(location(name), value);
 }
 
-GLint Shader::location(std::string_view name) const {
-    return glGetUniformLocation(handle(), name.data());
+void Shader::set_vec3(std::string_view name, glm::vec3 value) {
+    glUniform3fv(location(name), 1, glm::value_ptr(value));
 }
 
+void Shader::set_vec4(std::string_view name, glm::vec4 value) {
+    glUniform4fv(location(name), 1, glm::value_ptr(value));
 }
 
-} // namespace Saturn
+void Shader::set_mat4(std::string_view name, glm::mat4 value) {
+    glUniformMatrix4fv(location(name), 1, GL_FALSE, glm::value_ptr(value));
+}
+
+int Shader::location(std::string_view name) {
+    use(); // Make sure the shader is in use
+    auto loc = glGetUniformLocation(program, name.data());
+    assert(loc != -1);
+    return loc;
+}

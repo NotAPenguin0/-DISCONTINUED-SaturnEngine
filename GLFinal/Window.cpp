@@ -18,6 +18,7 @@ Window::Window(WindowSettings settings) : win(nullptr) {
         Saturn::error("FATAL ERROR: Failed to create window");
     } else {
         wsettings = settings;
+		glfwMakeContextCurrent(win);
     }
 }
 
@@ -38,9 +39,20 @@ Window::~Window() { destroy(); }
 
 GLFWwindow* Window::handle() { return win; }
 
+void Window::set_position(float x, float y)
+{
+	glfwSetWindowPos(win, x, y);
+}
+
 void Window::destroy() {
     if (win != nullptr) { glfwDestroyWindow(win); }
     win = nullptr;
+}
+
+void Window::clear(glm::vec3 color, GLenum buffers /* = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT*/)
+{
+    glClearColor(color.x, color.y, color.z, 1.0f);
+	glClear(buffers);
 }
 
 bool Window::is_open() const {

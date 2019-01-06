@@ -1,15 +1,17 @@
 #ifndef SATURN_WINDOW_HPP_
 #define SATURN_WINDOW_HPP_
 
-#include "OpenGL.hpp"
 #include "NonCopyable.hpp"
+#include "OpenGL.hpp"
+
+#include <GLM\glm.hpp>
 
 #include <string>
 
 namespace Saturn {
 
 struct WindowSettings {
-	WindowSettings(std::string c, std::size_t w, std::size_t h);
+    WindowSettings(std::string c, std::size_t w, std::size_t h);
     WindowSettings() = default;
 
     std::string caption;
@@ -21,31 +23,36 @@ struct WindowSettings {
 
 class Window : public NonCopyable {
 public:
-	//To be able to access the callback functions
+    // To be able to access the callback functions
     friend class Application;
 
-	Window();
+    Window();
     Window(WindowSettings settings);
     Window(Window&&);
     Window& operator=(Window&&);
     ~Window();
 
-	GLFWwindow* handle();
+    GLFWwindow* handle();
 
-	bool is_open() const;
+    bool is_open() const;
 
-	void destroy();
+    void destroy();
 
-	std::size_t width() const;
-	std::size_t height() const;
-	std::string caption() const;
-	bool fullscreen() const;
-	WindowSettings settings() const;
+    void clear(glm::vec3 color, GLenum buffers = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	void set_fullscreen(bool f);
+	void set_position(float x, float y);
+
+    std::size_t width() const;
+    std::size_t height() const;
+    std::string caption() const;
+    bool fullscreen() const;
+    WindowSettings settings() const;
+
+    void set_fullscreen(bool f);
 
 private:
-    static void resize_callback([[maybe_unused]] GLFWwindow* window, int w, int h);
+    static void
+        resize_callback([[maybe_unused]] GLFWwindow* window, int w, int h);
 
     GLFWwindow* win;
     WindowSettings wsettings;

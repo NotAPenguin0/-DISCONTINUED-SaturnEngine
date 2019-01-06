@@ -9,9 +9,12 @@
 #include <sstream>
 #include <string>
 
+#include "Cube.hpp"
 #include "FPSCamera.hpp"
 #include "Light.hpp"
 #include "LightShader.hpp"
+#include "Model.hpp"
+#include "Plane.hpp"
 #include "Texture.hpp"
 #include "Timer.hpp"
 #include "depend/stb_image.h"
@@ -21,7 +24,33 @@
 #include <GLM/gtc/matrix_transform.hpp>
 #include <GLM/gtc/type_ptr.hpp>
 
+namespace old {
+
 #define UNUSED(x) (void)x
+
+float plane_yoffset = 0;
+
+#pragma region helpers
+
+#ifdef _DEBUG
+inline void check_gl_errors() {
+    GLenum error = glGetError();
+    if (error == GL_INVALID_ENUM) {
+        throw std::runtime_error("GL_INVALID_ENUM");
+    } else if (error == GL_INVALID_VALUE) {
+        throw std::runtime_error("GL_INVALID_VALUE");
+    } else if (error == GL_INVALID_OPERATION) {
+        throw std::runtime_error("GL_INVALID_OPERATION");
+    } else if (error == GL_INVALID_FRAMEBUFFER_OPERATION) {
+        throw std::runtime_error("GL_INVALID_FRAMEBUFFER_OPERATION");
+    } else if (error == GL_OUT_OF_MEMORY) {
+        throw std::runtime_error("GL_OUT_OF_MEMORY");
+    }
+}
+#    define CHECK_GL_ERRORS() check_gl_errors()
+#else
+#    define CHECK_GL_ERRORS()
+#endif // _DEBUG
 
 static const char* VertexPath = "shaders/vertex.glsl";
 static const char* FragmentPath = "shaders/fragment.glsl";
@@ -35,9 +64,11 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 float lastX = 400, lastY = 300;
 bool firstMouse = true;
-Saturn::FPSCamera camera(glm::vec3(0.5, 1.0f, 4.5f));
+::Saturn::FPSCamera camera(glm::vec3(0.5, 1.0f, 4.5f));
 
-std::ostream& operator<<(std::ostream& out, glm::vec3 const& vec);
+std::ostream& operator<<(std::ostream& out, glm::vec3 const& vec) {
+    return out << vec.x << " " << vec.y << " " << vec.z;
+}
 
 std::istream& operator>>(std::istream& in, glm::vec3& vec) {
     in >> vec.x >> vec.y >> vec.z;
@@ -45,7 +76,7 @@ std::istream& operator>>(std::istream& in, glm::vec3& vec) {
 }
 
 void init() {
-    if (!glfwInit()) { Saturn::error("Failed to initialize GLFW\n"); }
+    if (!glfwInit()) { ::Saturn::error("Failed to initialize GLFW\n"); }
     glfwWindowHint(GLFW_SAMPLES, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -57,9 +88,9 @@ void init() {
 #endif
 }
 
-
-
-void framebuffer_size_callback([[maybe_unused]] GLFWwindow* window, int w, int h) {
+void framebuffer_size_callback([[maybe_unused]] GLFWwindow* window,
+                               int w,
+                               int h) {
     glViewport(0, 0, w, h);
 }
 
@@ -69,7 +100,7 @@ unsigned int create_shader(const char* vtx_path, const char* frag_path) {
     std::fstream file(vtx_path);
 
     if (!file.good()) {
-        Saturn::error(
+        ::Saturn::error(
             "[SHADER::VERTEX]: failed to open vertex shader source file at path"s +
             vtx_path);
         return -1;
@@ -85,7 +116,7 @@ unsigned int create_shader(const char* vtx_path, const char* frag_path) {
     file.open(frag_path);
 
     if (!file.good()) {
-        Saturn::error(
+        ::Saturn::error(
             "[SHADER::FRAGMENT]: failed to open fragment shader source file at path"s +
             frag_path);
         return -1;
@@ -116,7 +147,9 @@ unsigned int create_shader(const char* vtx_path, const char* frag_path) {
     glGetShaderiv(vtx_shader, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(vtx_shader, 512, nullptr, infolog);
-        Saturn::error("[SHADER::VERTEX::COMPILATION_FAILED]: "s + infolog);
+        ::Saturn::error("Failed to compile vertex shader at path: "s +
+                        vtx_path);
+        ::Saturn::error("[SHADER::VERTEX::COMPILATION_FAILED]: "s + infolog);
         return -1;
     }
 
@@ -124,7 +157,9 @@ unsigned int create_shader(const char* vtx_path, const char* frag_path) {
     glGetShaderiv(frag_shader, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(frag_shader, 512, nullptr, infolog);
-        Saturn::error("[SHADER::FRAGMENT::COMPILATION_FAILED]: "s + infolog);
+        ::Saturn::error("Failed to compile fragment shader at path: "s +
+                        frag_path);
+        ::Saturn::error("[SHADER::FRAGMENT::COMPILATION_FAILED]: "s + infolog);
         return -1;
     }
 
@@ -138,7 +173,9 @@ unsigned int create_shader(const char* vtx_path, const char* frag_path) {
     glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
     if (!success) {
         glGetProgramInfoLog(shaderProgram, 512, nullptr, infolog);
-        Saturn::error("[SHADER::LINK_FAILED]: "s + infolog);
+        ::Saturn::error("Failed to link shader. Vertex\n: "s + vtx_path +
+                        "\nFragment: "s + frag_path);
+        ::Saturn::error("[SHADER::LINK_FAILED]: "s + infolog);
         return -1;
     }
 
@@ -154,9 +191,9 @@ void reload_shader(unsigned int& prog, const char* vtx, const char* frag) {
 }
 
 void process_input(GLFWwindow* window) {
-    static Saturn::Timer shaderReloadTimer;
-    static Saturn::Timer wireFrameTimer;
-    static Saturn::Timer posTimer;
+    static ::Saturn::Timer shaderReloadTimer;
+    static ::Saturn::Timer wireFrameTimer;
+    static ::Saturn::Timer posTimer;
     static bool wireFrameEnabled = false;
     static constexpr std::chrono::milliseconds delay{300};
 
@@ -166,7 +203,7 @@ void process_input(GLFWwindow* window) {
         camera.Speed = 5.0f;
     }
 
-    using Saturn::Direction;
+    using ::Saturn::Direction;
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         camera.move(Direction::Forward, deltaTime);
@@ -197,7 +234,7 @@ void process_input(GLFWwindow* window) {
                 shaderReloadTimer.start(delay);
                 reload_shader(shader, VertexPath, FragmentPath);
                 reload_shader(lampShader, LampVertex, LampFragment);
-                Saturn::info("Shader reload complete");
+                ::Saturn::info("Shader reload complete");
             }
         }
         if (glfwGetKey(window, GLFW_KEY_Z) ==
@@ -209,20 +246,30 @@ void process_input(GLFWwindow* window) {
 
                 if (wireFrameEnabled) {
                     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-                    Saturn::info("Wireframe mode enabled");
+                    ::Saturn::info("Wireframe mode enabled");
                 } else {
                     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-                    Saturn::info("Wireframe mode disabled");
+                    ::Saturn::info("Wireframe mode disabled");
                 }
             }
         }
         if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
             if (posTimer.has_ended()) {
                 posTimer.start(delay);
-                Saturn::debug("current camera position: ");
+                ::Saturn::debug("current camera position: ");
                 std::cout << camera.Position << "\n";
             }
         }
+    }
+    float plane_speed = 0.02f;
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+        plane_yoffset -= plane_speed;
+    }
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+        plane_yoffset += plane_speed;
+    }
+    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) {
+        std::cout << "Plane y offset: " << plane_yoffset << "\n";
     }
 }
 
@@ -261,7 +308,7 @@ GLFWwindow* init_all() {
         800, 600, "LearnOpenGL for the final time!", nullptr, nullptr);
 
     if (!window) {
-        Saturn::error("Failed to create window");
+        ::Saturn::error("Failed to create window");
         glfwDestroyWindow(window);
         glfwTerminate();
         return nullptr;
@@ -270,7 +317,7 @@ GLFWwindow* init_all() {
     glfwMakeContextCurrent(window);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        Saturn::error("Failed to initialize GLAD");
+        ::Saturn::error("Failed to initialize GLAD");
         glfwDestroyWindow(window);
         glfwTerminate();
         return nullptr;
@@ -286,251 +333,481 @@ GLFWwindow* init_all() {
     return window;
 }
 
-int main2() {
+#include "KeepOpen.hpp"
 
+unsigned int load_cubemap(std::string directory,
+                          std::vector<std::string> const& faces) {
+    unsigned int tex;
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, tex);
+    int w, h, channels;
+    for (std::size_t i = 0; i < faces.size(); ++i) {
+        unsigned char* data =
+            stbi_load((directory + faces[i]).c_str(), &w, &h, &channels, 0);
+        if (data) {
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, w, h, 0,
+                         GL_RGB, GL_UNSIGNED_BYTE, data);
+            stbi_image_free(data);
+        } else {
+            ::Saturn::error("Failed to load cubemap texture at path: " +
+                            faces[i]);
+            stbi_image_free(data);
+        }
+    }
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+    return tex;
+}
+
+#pragma endregion helpers
+
+int main2() {
+    srand(time(nullptr));
+    rand(); // first might not be random on all compilers
+
+    ::Saturn::log("Starting initialization");
 
     auto window = init_all();
 
-    // shader = create_shader(VertexPath, FragmentPath);
-    lampShader = create_shader(LampVertex, LampFragment);
-    float vertices[] = {
-        // positions          // normals           // texture coords
-        -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f,  0.0f,  0.5f,  -0.5f,
-        -0.5f, 0.0f,  0.0f,  -1.0f, 1.0f,  0.0f,  0.5f,  0.5f,  -0.5f, 0.0f,
-        0.0f,  -1.0f, 1.0f,  1.0f,  0.5f,  0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f,
-        1.0f,  1.0f,  -0.5f, 0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f,  1.0f,
-        -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 0.0f,  0.0f,
+    glfwSetWindowPos(window, 550, 100);
 
-        -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,  0.5f,  -0.5f,
-        0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,  0.5f,  0.5f,  0.5f,  0.0f,
-        0.0f,  1.0f,  1.0f,  1.0f,  0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-        1.0f,  1.0f,  -0.5f, 0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+    ::Saturn::log("Loading shaders");
 
-        -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f,  1.0f,  0.0f,  -0.5f, 0.5f,
-        -0.5f, -1.0f, 0.0f,  0.0f,  1.0f,  1.0f,  -0.5f, -0.5f, -0.5f, -1.0f,
-        0.0f,  0.0f,  0.0f,  1.0f,  -0.5f, -0.5f, -0.5f, -1.0f, 0.0f,  0.0f,
-        0.0f,  1.0f,  -0.5f, -0.5f, 0.5f,  -1.0f, 0.0f,  0.0f,  0.0f,  0.0f,
-        -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f,  1.0f,  0.0f,
+    shader = create_shader("resources/shaders/scene_tex_def_v.glsl",
+                           "resources/shaders/scene_tex_def_f.glsl");
 
-        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  0.5f,  0.5f,
-        -0.5f, 1.0f,  0.0f,  0.0f,  1.0f,  1.0f,  0.5f,  -0.5f, -0.5f, 1.0f,
-        0.0f,  0.0f,  0.0f,  1.0f,  0.5f,  -0.5f, -0.5f, 1.0f,  0.0f,  0.0f,
-        0.0f,  1.0f,  0.5f,  -0.5f, 0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+    auto grass_shader = create_shader("resources/shaders/grass_v.glsl",
+                                      "resources/shaders/grass_f.glsl");
 
-        -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,  0.0f,  1.0f,  0.5f,  -0.5f,
-        -0.5f, 0.0f,  -1.0f, 0.0f,  1.0f,  1.0f,  0.5f,  -0.5f, 0.5f,  0.0f,
-        -1.0f, 0.0f,  1.0f,  0.0f,  0.5f,  -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,
-        1.0f,  0.0f,  -0.5f, -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,  0.0f,  1.0f,
+    auto window_shader = create_shader("resources/shaders/window_v.glsl",
+                                       "resources/shaders/window_f.glsl");
 
-        -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  0.0f,  1.0f,  0.5f,  0.5f,
-        -0.5f, 0.0f,  1.0f,  0.0f,  1.0f,  1.0f,  0.5f,  0.5f,  0.5f,  0.0f,
-        1.0f,  0.0f,  1.0f,  0.0f,  0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-        1.0f,  0.0f,  -0.5f, 0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
-        -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  0.0f,  1.0f};
+    auto framebuffer_shader =
+        create_shader("resources/shaders/framebuffer_v.glsl",
+                      "resources/shaders/framebuffer_f.glsl");
 
-    glm::vec3 cubePositions[] = {
-        glm::vec3(0.0f, 0.0f, 0.0f),    glm::vec3(2.0f, 5.0f, -15.0f),
-        glm::vec3(-1.5f, -2.2f, -2.5f), glm::vec3(-3.8f, -2.0f, -12.3f),
-        glm::vec3(2.4f, -0.4f, -3.5f),  glm::vec3(-1.7f, 3.0f, -7.5f),
-        glm::vec3(1.3f, -2.0f, -2.5f),  glm::vec3(1.5f, 2.0f, -2.5f),
-        glm::vec3(1.5f, 0.2f, -1.5f),   glm::vec3(-1.3f, 1.0f, -1.5f)};
+    auto skybox_shader = create_shader("resources/shaders/skybox_v.glsl",
+                                       "resources/shaders/skybox_f.glsl");
 
-    glm::vec3 pointLightPositions[] = {
-        glm::vec3(0.7f, 0.2f, -20.0f), glm::vec3(2.3f, -3.3f, -4.0f),
-        glm::vec3(-4.0f, 2.0f, -12.0f), glm::vec3(0.0f, -1.0f, -7.0f)};
+    auto mirror_shader = create_shader("resources/shaders/mirror_v.glsl",
+                                       "resources/shaders/mirror_f.glsl");
 
-    unsigned int VBO, VAO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
+    auto mod_s = create_shader("resources/shaders/model_vtx.glsl",
+                               "resources/shaders/model_frag.glsl");
 
-    glBindVertexArray(VAO);
+    ::Saturn::log("Loading textures");
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    ::Saturn::Texture grass;
+    grass.load("resources/textures/grass.png", GL_TEXTURE0, GL_RGBA);
+    ::Saturn::Texture floor;
+    floor.load("resources/textures/marble.jpg", GL_TEXTURE0, GL_RGB);
+    ::Saturn::Texture cube_tex;
+    cube_tex.load("resources/textures/wood.png", GL_TEXTURE0, GL_RGBA);
+    ::Saturn::Texture window_tex;
+    window_tex.load("resources/textures/window.png", GL_TEXTURE0, GL_RGBA);
 
-    // Position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-                          (void*)0);
+    // http://www.humus.name/index.php?page=Textures is a nice website for
+    // skyboxes
+    std::vector<std::string> faces = {"negx.jpg", "posx.jpg", "posy.jpg",
+                                      "negy.jpg", "negz.jpg", "posz.jpg"};
+    unsigned int cubemap_tex =
+        load_cubemap("resources/skyboxes/skybox/", faces);
+
+    ::Saturn::log("Loading models");
+
+    Model nanosuit =
+        Model::load_from_file("resources/models/nanosuit/nanosuit.obj");
+
+    float cubeVertices[] = {
+        -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 0.5f,  -0.5f, -0.5f,
+        0.0f,  0.0f,  -1.0f, 0.5f,  0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f,
+        0.5f,  0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, -0.5f, 0.5f,  -0.5f,
+        0.0f,  0.0f,  -1.0f, -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f,
+
+        -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,  0.5f,  -0.5f, 0.5f,
+        0.0f,  0.0f,  1.0f,  0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  -0.5f, 0.5f,  0.5f,
+        0.0f,  0.0f,  1.0f,  -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,
+
+        -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f,  -0.5f, 0.5f,  -0.5f,
+        -1.0f, 0.0f,  0.0f,  -0.5f, -0.5f, -0.5f, -1.0f, 0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f, 0.0f,  0.0f,  -0.5f, -0.5f, 0.5f,
+        -1.0f, 0.0f,  0.0f,  -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f,
+
+        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.5f,  0.5f,  -0.5f,
+        1.0f,  0.0f,  0.0f,  0.5f,  -0.5f, -0.5f, 1.0f,  0.0f,  0.0f,
+        0.5f,  -0.5f, -0.5f, 1.0f,  0.0f,  0.0f,  0.5f,  -0.5f, 0.5f,
+        1.0f,  0.0f,  0.0f,  0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+
+        -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,  0.5f,  -0.5f, -0.5f,
+        0.0f,  -1.0f, 0.0f,  0.5f,  -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,
+        0.5f,  -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,  -0.5f, -0.5f, 0.5f,
+        0.0f,  -1.0f, 0.0f,  -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,
+
+        -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  0.5f,  0.5f,  -0.5f,
+        0.0f,  1.0f,  0.0f,  0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  -0.5f, 0.5f,  0.5f,
+        0.0f,  1.0f,  0.0f,  -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f};
+    float planeVertices[] = {
+        // positions          // texture Coords
+        5.0f, -0.5f, 5.0f,  2.0f,  0.0f,  -5.0f, -0.5f, 5.0f,
+        0.0f, 0.0f,  -5.0f, -0.5f, -5.0f, 0.0f,  2.0f,
+
+        5.0f, -0.5f, 5.0f,  2.0f,  0.0f,  -5.0f, -0.5f, -5.0f,
+        0.0f, 2.0f,  5.0f,  -0.5f, -5.0f, 2.0f,  2.0f};
+    float transparentVertices[] = {
+        // positions         // texture Coords (swapped y coordinates because
+        // texture is flipped upside down)
+        0.0f, 0.5f, 0.0f, 0.0f,  0.0f, 0.0f, -0.5f, 0.0f,
+        0.0f, 1.0f, 1.0f, -0.5f, 0.0f, 1.0f, 1.0f,
+
+        0.0f, 0.5f, 0.0f, 0.0f,  0.0f, 1.0f, -0.5f, 0.0f,
+        1.0f, 1.0f, 1.0f, 0.5f,  0.0f, 1.0f, 0.0f};
+
+    float screenVertices[] = {
+        -1.0f, 1.0f,  0.0f, 0.0f, 1.0f, // TL
+        -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, // BL
+        1.0f,  -1.0f, 0.0f, 1.0f, 0.0f, // BR
+        -1.0f, 1.0f,  0.0f, 0.0f, 1.0f, // Second triangle TL
+        1.0f,  1.0f,  0.0f, 1.0f, 1.0f, // TR
+        1.0f,  -1.0f, 0.0f, 1.0f, 0.0f, // Second triangle BR
+    };
+
+    float skyboxVertices[] = {
+        // positions
+        -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f,
+        1.0f,  -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f, 1.0f,  -1.0f,
+
+        -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f,
+        -1.0f, 1.0f,  -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f, 1.0f,
+
+        1.0f,  -1.0f, -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,  1.0f,
+        1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f, -1.0f,
+
+        -1.0f, -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,  1.0f,  1.0f,
+        1.0f,  1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f, -1.0f, 1.0f,
+
+        -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,
+        1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f,
+
+        -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f,
+        1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f};
+
+    std::vector<glm::vec3> grass_plants;
+    grass_plants.emplace_back(-1.5f, 0.0f, -0.48f);
+    grass_plants.emplace_back(1.5f, 0.0f, 0.51f);
+    grass_plants.emplace_back(0.0f, 0.0f, 0.7f);
+    grass_plants.emplace_back(-0.3f, 0.0f, -2.3f);
+    grass_plants.emplace_back(0.5f, 0.0f, -0.6f);
+
+    ::Saturn::log("Allocating buffers");
+
+    Cube cube;
+    Plane floor_plane;
+
+    // transparent VAO
+    unsigned int transparentVAO, transparentVBO;
+    glGenVertexArrays(1, &transparentVAO);
+    glGenBuffers(1, &transparentVBO);
+    glBindVertexArray(transparentVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, transparentVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(transparentVertices),
+                 transparentVertices, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
-    // normals
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-                          (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+                          (void*)0);
     glEnableVertexAttribArray(1);
-    // texture coords
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-                          (void*)(6 * sizeof(float)));
-    glEnableVertexAttribArray(2);
-
-    // Unbind buffer and VAO
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+                          (void*)(3 * sizeof(float)));
     glBindVertexArray(0);
 
-    unsigned int lampVAO;
-    glGenVertexArrays(1, &lampVAO);
-    glBindVertexArray(lampVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-                          (void*)0);
+    unsigned int screenVAO, screenVBO;
+    glGenVertexArrays(1, &screenVAO);
+    glGenBuffers(1, &screenVBO);
+    glBindVertexArray(screenVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, screenVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(screenVertices), screenVertices,
+                 GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+                          (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+                          (void*)(3 * sizeof(float)));
+    glBindVertexArray(0);
 
-    glm::mat4 model = identity();
+    unsigned int skyboxVAO, skyboxVBO;
+    glGenVertexArrays(1, &skyboxVAO);
+    glGenBuffers(1, &skyboxVBO);
+    glBindVertexArray(skyboxVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), skyboxVertices,
+                 GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float),
+                          (void*)0);
+    glBindVertexArray(0);
 
-    glm::mat4 view = identity();
+    // Create the framebuffer
 
-    glm::mat4 proj = identity();
+    unsigned int fbo; // frame buffer object
+    glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
-    glEnable(GL_DEPTH_TEST);
+    // Setup framebuffer
 
-    Saturn::Texture container;
-    container.load("container2.png", GL_TEXTURE0, GL_RGBA);
-    Saturn::Texture cont_specular;
-    cont_specular.load("container2_specular.png", GL_TEXTURE1, GL_RGBA);
+    // Create a texture to render to
+    unsigned int buf_texture;
+    glGenTextures(1, &buf_texture);
+    glBindTexture(GL_TEXTURE_2D, buf_texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 800, 600, 0, GL_RGB,
+                 GL_UNSIGNED_BYTE, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    // Attach it to the framebuffer
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                           buf_texture, 0);
+    // Add a renderbuffer object for depth and stencil testing
+    unsigned int rbo;
+    glGenRenderbuffers(1, &rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+    // Set storage mode
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 800, 600);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    // Attach it
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
+                              GL_RENDERBUFFER, rbo);
 
-    /*   auto materials = load_materials("materials.txt");
-       auto& mat = materials.at("gold");
-
-       glm::vec3 objColor = mat.color;*/
-    glm::vec3 lightPos = glm::vec3(1.2f, 1.0f, 2.0f);
-
-    glm::vec3 light_ambient = glm::vec3(0.05f, 0.05f, 0.05f);
-    glm::vec3 light_diffuse = glm::vec3(0.4f, 0.4f, 0.4f);
-    glm::vec3 light_specular = glm::vec3(0.5f, 0.5f, 0.5f);
-    float constant = 1.0f;
-    float linear = 0.09f;
-    float quadratic = 0.032f;
-
-    lightPos.y = 0.0f;
-
-    //    float spotLightAngle = 12.5f;
-    //    float spotLightOuterAngle = 17.5f;
-
-    Saturn::deleted::LightShader ls;
-    Saturn::DirectionalLight light;
-    Saturn::SpotLight camLight;
-    Saturn::Material mat;
-
-    camLight.ambient = glm::vec3(0.0f, 0.0f, 0.0f);
-    camLight.diffuse = glm::vec3(1.0f, 1.0f, 1.0f);
-    camLight.specular = glm::vec3(1.0f, 1.0f, 1.0f);
-    camLight.position = camera.Position;
-    camLight.direction = camera.Front;
-    camLight.constant = 1.0f;
-    camLight.linear = 0.09f;
-    camLight.quadratic = 0.032f;
-    camLight.radius = glm::radians(12.5f);
-    camLight.soft_radius = glm::radians(15.0f);
-
-    ls.add<Saturn::SpotLight>(&camLight);
-
-    std::array<Saturn::PointLight, 4> ptLights;
-    for (int i = 0; i < 4; ++i) {
-        auto& l = ptLights[i];
-        l.position = pointLightPositions[i];
-        l.ambient = light_ambient;
-        l.diffuse = light_diffuse;
-        l.specular = light_specular;
-        l.linear = linear;
-        l.constant = constant;
-        l.quadratic = quadratic;
-        ls.add<Saturn::PointLight>(&l);
+    // Check success
+    // https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glCheckFramebufferStatus.xhtml
+    auto framebuffer_status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (framebuffer_status == GL_FRAMEBUFFER_COMPLETE) {
+        ::Saturn::log("Framebuffer initialized");
+    } else {
+        // Fuck
+        ::Saturn::error("Failed to create framebuffer");
+        if (framebuffer_status == GL_FRAMEBUFFER_UNDEFINED) {
+            ::Saturn::error("GL_FRAMEBUFFER_UNDEFINED");
+        } else if (framebuffer_status == GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT) {
+            ::Saturn::error("GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT");
+        } else if (framebuffer_status ==
+                   GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT) {
+            ::Saturn::error("GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT");
+        } else if (framebuffer_status ==
+                   GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER) {
+            ::Saturn::error("GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER");
+        } else if (framebuffer_status ==
+                   GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER) {
+            ::Saturn::error("GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER");
+        } else if (framebuffer_status == GL_FRAMEBUFFER_UNSUPPORTED) {
+            ::Saturn::error("GL_FRAMEBUFFER_UNSUPPORTED");
+        } else if (framebuffer_status ==
+                   GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE) {
+            ::Saturn::error("GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE");
+        } else if (framebuffer_status ==
+                   GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS) {
+            ::Saturn::error("GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS");
+        }
     }
 
-    float shininess = 64.0f;
-    UNUSED(shininess);
-    mat.ambient = glm::vec3(1.0f, 0.5f, 0.31f);
-    mat.diffuseMap = &container;
-    mat.specularMap = &cont_specular;
-    mat.shininess = 64.0f;
-    light.ambient = light_ambient;
-    light.diffuse = light_diffuse;
-    light.specular = light_specular;
-    light.direction = glm::vec3(-0.2f, -1.0f, -0.3f);
-    ls.add<Saturn::DirectionalLight>(&light);
-    ls.material = mat;
-	ls.camera = &camera;
+    // Render to the screen again
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	
+    ::Saturn::log("Enabling OpenGL functionality");
+
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glEnable(GL_CULL_FACE);
+    glDepthFunc(GL_LEQUAL);
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    std::vector<glm::vec3> grass_positions(10);
+    for (auto& pos : grass_positions) {
+        // Generate random positions ranging from -2.5 to 2.5
+
+        pos.x = (rand() % 100) / 10.0f - 5.0f;
+        pos.y = 0.0f;
+        pos.z = (rand() % 100) / 10.0f - 5.0f;
+    }
+
+    unsigned int grass_instance_vbo;
+    glGenBuffers(1, &grass_instance_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, grass_instance_vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * grass_positions.size(),
+                 &grass_positions[0], GL_STATIC_DRAW);
+    glBindVertexArray(transparentVAO);
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float),
+                          (void*)0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glVertexAttribDivisor(2, 1);
+
     while (!glfwWindowShouldClose(window)) {
 
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
+        // First render pass. Here we render everything to a buffer so we can do
+        // some postprocessing later
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK); // default
 
         process_input(window);
 
-        ls.use();
-
-		camLight.direction = camera.Front;
-        camLight.position = camera.Position;
-
-
-        model = identity();
+        // Create model view projection matrices
+        glm::mat4 model = identity(), view = identity(),
+                  projection = identity();
+        projection = glm::perspective(glm::radians(camera.Zoom),
+                                      800.0f / 600.0f, 0.1f, 100.0f);
+        // Remove translations so the
+        // skybox doesn't move
         view = camera.view_matrix();
-        proj = glm::perspective(glm::radians(camera.Zoom), 800.0f / 600.0f,
-                                0.1f, 100.0f);
+        //        view = glm::mat4(glm::mat3(view));
 
-        ls.view = view;
-        ls.projection = proj;
+        // Sort grass_plants based on distance to avoid the depth test
+        // discarding them
+        std::sort(grass_plants.begin(), grass_plants.end(),
+                  [](glm::vec3 const& a, glm::vec3 const& b) {
+                      return glm::length(camera.Position - a) <
+                             glm::length(camera.Position - b);
+                  });
+        // Reverse the list to draw objects further away first
+        std::reverse(grass_plants.begin(), grass_plants.end());
 
-        glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+        glUseProgram(mirror_shader);
 
-        light.diffuse = lightColor * glm::vec3(0.5); // decrease the influence
-        light.ambient = light_diffuse * glm::vec3(0.2); // low influence
+        /*auto loc = glGetUniformLocation(shader, "texture1");
+        assert(loc != -1);
+        glUniform1i(loc, 0);*/
 
-        glBindVertexArray(VAO);
-        // Draw main cubes
-        for (unsigned int i = 0; i < 10; i++) {
-            // calculate the model matrix for each object and pass it to shader
-            // before drawing
-            container.bind();
-            cont_specular.bind();
-
-            model = identity();
-            model = glm::translate(model, cubePositions[i]);
-            float angle = 20.0f * i;
-            model = glm::rotate(model, glm::radians(angle),
-                                glm::vec3(1.0f, 0.3f, 0.5f));
-            ls.model = model;
-            ls.update_uniforms();
-
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
-
-        // Draw light cube
-        glBindVertexArray(lampVAO);
-        glUseProgram(lampShader);
-        model = identity();
-
-        glUniformMatrix4fv(glGetUniformLocation(lampShader, "view"), 1,
+        glUniformMatrix4fv(glGetUniformLocation(mirror_shader, "view"), 1,
                            GL_FALSE, glm::value_ptr(view));
-        glUniformMatrix4fv(glGetUniformLocation(lampShader, "proj"), 1,
-                           GL_FALSE, glm::value_ptr(proj));
-        for (auto pointLightPosition : pointLightPositions) {
-            model = identity();
-            model = glm::scale(model, glm::vec3(0.2f));
-            model = glm::translate(model, pointLightPosition);
+        glUniformMatrix4fv(glGetUniformLocation(mirror_shader, "projection"), 1,
+                           GL_FALSE, glm::value_ptr(projection));
 
-            glUniformMatrix4fv(glGetUniformLocation(lampShader, "model"), 1,
-                               GL_FALSE, glm::value_ptr(model));
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
+        glBindTexture(GL_TEXTURE_CUBE_MAP,
+                      cubemap_tex); // skybox to reflect in the mirror
+        // glDrawArrays(GL_TRIANGLES, 0, 36);
+        model = glm::translate(model, glm::vec3(2.0f, -1.0f, 0.0f));
+        model = glm::rotate(model, glm::radians(270.0f),
+                            glm::vec3(0.0f, 1.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
+        glUniformMatrix4fv(glGetUniformLocation(mirror_shader, "model"), 1,
+                           GL_FALSE, glm::value_ptr(model));
+//        nanosuit.render(mirror_shader);
+        //        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        // Render a cube the 'easy' way
+        model = identity();
+        model = glm::translate(model, glm::vec3(2.0f, 3.0f, -5.0f));
+        glUseProgram(shader); // Make sure the shader is active before rendering
+        glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE,
+                           glm::value_ptr(model));
+        glUniformMatrix4fv(glGetUniformLocation(shader, "view"), 1, GL_FALSE,
+                           glm::value_ptr(view));
+        glUniformMatrix4fv(glGetUniformLocation(shader, "projection"), 1,
+                           GL_FALSE, glm::value_ptr(projection));
+        cube_tex.bind();
+//        cube.render(shader);
+
+        // Disable face culling for planes and quads
+        glDisable(GL_CULL_FACE);
+        glUseProgram(shader);
+        floor.bind();
+        model = identity();
+        //        model = glm::scale(model, glm::vec3(30.0f, 1.0f, 30.0f));
+        model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));
+        model = glm::rotate(model, glm::radians(90.0f),
+                            glm::vec3(1.0f, 0.0f, 0.0f));
+
+        glUniform1i(glGetUniformLocation(shader, "texture1"), 0);
+        glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE,
+                           glm::value_ptr(model));
+        glUniformMatrix4fv(glGetUniformLocation(shader, "view"), 1, GL_FALSE,
+                           glm::value_ptr(view));
+        glUniformMatrix4fv(glGetUniformLocation(shader, "projection"), 1,
+                           GL_FALSE, glm::value_ptr(projection));
+//        floor_plane.render(shader);
+
+        glUseProgram(grass_shader);
+
+        glBindVertexArray(transparentVAO);
+        grass.bind();
+        auto loc = glGetUniformLocation(grass_shader, "texture1");
+        assert(loc != -1);
+        glUniform1i(loc, 0);
+        model = identity();
+        model = glm::translate(model, glm::vec3(0.0f, -0.5f, 0.0f));
+        glUniformMatrix4fv(glGetUniformLocation(grass_shader, "view"), 1,
+                           GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(glGetUniformLocation(grass_shader, "projection"), 1,
+                           GL_FALSE, glm::value_ptr(projection));
+        glUniformMatrix4fv(glGetUniformLocation(window_shader, "model"), 1,
+                           GL_FALSE, glm::value_ptr(model));
+        glDrawArraysInstanced(GL_TRIANGLES, 0, 6, grass_positions.size());
+
+        glBindVertexArray(0);
+
+        // Render the skybox
+        glDepthMask(0x00); // Disable writing to the depth buffer
+        glUseProgram(skybox_shader);
+        glUniformMatrix4fv(glGetUniformLocation(skybox_shader, "view"), 1,
+                           GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(glGetUniformLocation(skybox_shader, "projection"), 1,
+                           GL_FALSE, glm::value_ptr(projection));
+
+        glBindVertexArray(skyboxVAO);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap_tex);
+        //       glDrawArrays(GL_TRIANGLES, 0, 36);
+        glDepthMask(0xff); // re enable writing to the depth buffer
+
+        // Second render pass. Render the buffer to the screen and use the
+        // postprocessing shader
+        glBindFramebuffer(GL_FRAMEBUFFER, 0); // Draw to window
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        glUseProgram(framebuffer_shader);
+
+        glBindVertexArray(screenVAO);
+        glDisable(GL_DEPTH_TEST);
+        glBindTexture(GL_TEXTURE_2D, buf_texture);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    glDeleteBuffers(1, &VBO);
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteVertexArrays(1, &lampVAO);
+    ::Saturn::log("Deallocating resources");
+
+    glDeleteProgram(shader);
+    glDeleteFramebuffers(1, &fbo);
+    glDeleteVertexArrays(1, &transparentVAO);
+    glDeleteVertexArrays(1, &screenVAO);
+    glDeleteBuffers(1, &transparentVBO);
+    glDeleteBuffers(1, &screenVBO);
+    glDeleteTextures(1, &buf_texture);
+    glDeleteRenderbuffers(1, &rbo);
+
+    ::Saturn::log("Terminating");
 
     glfwDestroyWindow(window);
     glfwTerminate();
 
     return 0;
 }
+
+} // namespace old

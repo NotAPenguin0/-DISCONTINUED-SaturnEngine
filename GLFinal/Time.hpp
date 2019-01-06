@@ -6,14 +6,11 @@ namespace Saturn {
 class Time {
 public:
     static inline float deltaTime;
+
     static float now();
-
-private:
-    friend class Application;
-
-	static void update();
-
-    static inline float lastFrame;
+    static void update();
+   
+	static inline float lastFrame;
 };
 
 } // namespace Saturn
