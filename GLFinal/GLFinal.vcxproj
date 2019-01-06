@@ -167,36 +167,24 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AbstractRenderer.cpp" />
-    <ClCompile Include="Application.cpp" />
-    <ClCompile Include="CameraLightSystem.cpp" />
-    <ClCompile Include="clean_main.cpp" />
     <ClCompile Include="Cube.cpp" />
     <ClCompile Include="depend\log++.cpp" />
-    <ClCompile Include="ErrorHandler.cpp" />
     <ClCompile Include="FPSCamera.cpp" />
     <ClCompile Include="FPSCounter.cpp" />
     <ClCompile Include="FrameBuffer.cpp" />
     <ClCompile Include="FrameBufferRenderer.cpp" />
     <ClCompile Include="glad\src\glad.cpp" />
-    <ClCompile Include="Globals.cpp" />
     <ClCompile Include="initgl.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="InstancedRenderer.cpp" />
-    <ClCompile Include="LightShader.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="newest_main.cpp" />
-    <ClCompile Include="Object.cpp" />
-    <ClCompile Include="ObjectManager.cpp" />
     <ClCompile Include="OpenGL.cpp" />
     <ClCompile Include="Plane.cpp" />
     <ClCompile Include="PostProcessing.cpp" />
-    <ClCompile Include="RenderSystem.cpp" />
     <ClCompile Include="RenderTarget.cpp" />
-    <ClCompile Include="Resource.cpp" />
-    <ClCompile Include="ResourceLoaders.cpp" />
-    <ClCompile Include="deleted_Shader.cpp" />
     <ClCompile Include="ScreenRenderTarget.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Skybox.cpp" />
@@ -207,49 +195,31 @@
     <ClCompile Include="TexturedRenderer.cpp" />
     <ClCompile Include="Time.cpp" />
     <ClCompile Include="Window.cpp" />
-    <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AbstractRenderer.hpp" />
-    <ClInclude Include="Application.hpp" />
-    <ClInclude Include="CameraLightSystem.hpp" />
-    <ClInclude Include="Components.hpp" />
-    <ClInclude Include="ComponentSystem.hpp" />
     <ClInclude Include="Cube.hpp" />
-    <ClInclude Include="ErrorHandler.hpp" />
     <ClInclude Include="FPSCamera.hpp" />
     <ClInclude Include="depend\stb_image.h" />
     <ClInclude Include="FPSCounter.hpp" />
     <ClInclude Include="FrameBuffer.hpp" />
     <ClInclude Include="FrameBufferRenderer.hpp" />
-    <ClInclude Include="Globals.hpp" />
     <ClInclude Include="assimp.hpp" />
     <ClInclude Include="gl_errors.hpp" />
-    <ClInclude Include="IDGenerator.hpp" />
     <ClInclude Include="initgl.hpp" />
     <ClInclude Include="Input.hpp" />
     <ClInclude Include="InstancedMesh.hpp" />
     <ClInclude Include="InstancedRenderer.hpp" />
     <ClInclude Include="Mesh.hpp" />
     <ClInclude Include="Model.hpp" />
-    <ClInclude Include="Object.hpp" />
-    <ClInclude Include="ObjectManager.hpp" />
     <ClInclude Include="OpenGL.hpp" />
     <ClInclude Include="KeepOpen.hpp" />
     <ClInclude Include="Light.hpp" />
-    <ClInclude Include="LightShader.hpp" />
     <ClInclude Include="log.hpp" />
-    <ClInclude Include="Material.hpp" />
-    <ClInclude Include="NonCopyable.hpp" />
     <ClInclude Include="Plane.hpp" />
     <ClInclude Include="PostProcessing.hpp" />
     <ClInclude Include="Renderable.hpp" />
-    <ClInclude Include="RenderSystem.hpp" />
     <ClInclude Include="RenderTarget.hpp" />
-    <ClInclude Include="Resource.hpp" />
-    <ClInclude Include="ResourceLoaders.hpp" />
-    <ClInclude Include="ResourceTypes.hpp" />
-    <ClInclude Include="deleted_Shader.hpp" />
     <ClInclude Include="ScreenRenderTarget.hpp" />
     <ClInclude Include="Shader.hpp" />
     <ClInclude Include="Skybox.hpp" />
@@ -258,10 +228,8 @@
     <ClInclude Include="TexturedObject.hpp" />
     <ClInclude Include="TexturedRenderer.hpp" />
     <ClInclude Include="Time.hpp" />
-    <ClInclude Include="Timer.hpp" />
     <ClInclude Include="Utility.hpp" />
     <ClInclude Include="Window.hpp" />
-    <ClInclude Include="World.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="resources\temp\lamp.txt" />

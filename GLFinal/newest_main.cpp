@@ -164,7 +164,7 @@ int newest_main() {
     enable_gl_option(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
 
-    glm::vec3 lightPos = glm::vec3(0.0f, 0.0f, -8.0f);
+    glm::vec3 lightPos = glm::vec3(0.0f, 0.0f, -0.0f);
 
     while (!glfwWindowShouldClose(main_window.handle())) {
         Saturn::Input::update(main_window);
@@ -207,7 +207,7 @@ int newest_main() {
 
         reset_mat(render_matrices.model);
         render_matrices.model =
-            glm::translate(render_matrices.model, glm::vec3(0.0f, -5.0f, 0.0f));
+            glm::translate(render_matrices.model, glm::vec3(0.0f, -1.0f, 0.0f));
         render_matrices.model =
             glm::scale(render_matrices.model, glm::vec3(2.0f, 2.0f, 2.0f));
         render_matrices.model =

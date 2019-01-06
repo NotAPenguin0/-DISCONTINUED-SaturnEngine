@@ -14,7 +14,7 @@ void main()
 {
     vec3 color = texture(texture1, TexCoords).rgb;
     // ambient
-    vec3 ambient = 0.15 * color;
+    vec3 ambient = 0.10 * color;
     // diffuse
     vec3 lightDir = normalize(lightPos - FragPos);
     vec3 normal = normalize(Normal);
