@@ -82,7 +82,7 @@ void disable_movement(glm::mat4& view_matrix) {
 }
 
 
-int newest_main() {
+int main() {
 
     srand(time(nullptr));
     rand(); // might not always be random on some compilers
@@ -123,15 +123,12 @@ int newest_main() {
     PostProcessingShaders postprocessing_shaders(
         "resources/shaders/postprocessing/postprocessing_effects.ppe");
 
-    struct Meshes {
+	//This is a mess(h) (haha good joke ikr)
+	struct Meshes {
         Cube cube;
-        Plane floor = Plane(1.0f);
+        Plane floor = Plane(5.0f); //Scale up by 5
         Plane grass;
     } meshes;
-
-    // Todo: InstancedRenderer
-    // Todo: Skybox
-    // Todo: SkyboxRenderer
 
     TexturedObject textured_cube(meshes.cube, cube_tex);
     TexturedObject textured_floor(meshes.floor, floor_tex);
@@ -189,7 +186,6 @@ int newest_main() {
 
         reset_mat(render_matrices.model);
 
-
         // Draw a small cube at the light position
         renderer.set_shader(white_shader);
         white_shader.use();
@@ -204,6 +200,7 @@ int newest_main() {
         blinn_phong.use();
         blinn_phong.set_vec3("lightPos", lightPos);
         blinn_phong.set_vec3("viewPos", camera.Position);
+        blinn_phong.set_int("texture1", 0);
 
         reset_mat(render_matrices.model);
         render_matrices.model =

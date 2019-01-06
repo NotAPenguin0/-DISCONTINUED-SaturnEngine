@@ -11,12 +11,9 @@
 
 #include "Cube.hpp"
 #include "FPSCamera.hpp"
-#include "Light.hpp"
-#include "LightShader.hpp"
 #include "Model.hpp"
 #include "Plane.hpp"
 #include "Texture.hpp"
-#include "Timer.hpp"
 #include "depend/stb_image.h"
 #include "log.hpp"
 
@@ -191,11 +188,8 @@ void reload_shader(unsigned int& prog, const char* vtx, const char* frag) {
 }
 
 void process_input(GLFWwindow* window) {
-    static ::Saturn::Timer shaderReloadTimer;
-    static ::Saturn::Timer wireFrameTimer;
-    static ::Saturn::Timer posTimer;
+
     static bool wireFrameEnabled = false;
-    static constexpr std::chrono::milliseconds delay{300};
 
     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
         camera.Speed = 10.0f;
@@ -230,35 +224,29 @@ void process_input(GLFWwindow* window) {
 
     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
         if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
-            if (shaderReloadTimer.has_ended()) {
-                shaderReloadTimer.start(delay);
-                reload_shader(shader, VertexPath, FragmentPath);
-                reload_shader(lampShader, LampVertex, LampFragment);
-                ::Saturn::info("Shader reload complete");
-            }
+
+            reload_shader(shader, VertexPath, FragmentPath);
+            reload_shader(lampShader, LampVertex, LampFragment);
+            ::Saturn::info("Shader reload complete");
         }
         if (glfwGetKey(window, GLFW_KEY_Z) ==
             GLFW_PRESS) { // GLFW_KEY_Z because I have an Azerty keyboard, which
                           // means Z corresponds to W
-            if (wireFrameTimer.has_ended()) {
-                wireFrameTimer.start(delay);
-                wireFrameEnabled = !wireFrameEnabled;
 
-                if (wireFrameEnabled) {
-                    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-                    ::Saturn::info("Wireframe mode enabled");
-                } else {
-                    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-                    ::Saturn::info("Wireframe mode disabled");
-                }
+            wireFrameEnabled = !wireFrameEnabled;
+
+            if (wireFrameEnabled) {
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                ::Saturn::info("Wireframe mode enabled");
+            } else {
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                ::Saturn::info("Wireframe mode disabled");
             }
         }
         if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
-            if (posTimer.has_ended()) {
-                posTimer.start(delay);
-                ::Saturn::debug("current camera position: ");
-                std::cout << camera.Position << "\n";
-            }
+
+            ::Saturn::debug("current camera position: ");
+            std::cout << camera.Position << "\n";
         }
     }
     float plane_speed = 0.02f;
@@ -707,7 +695,7 @@ int main2() {
         model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
         glUniformMatrix4fv(glGetUniformLocation(mirror_shader, "model"), 1,
                            GL_FALSE, glm::value_ptr(model));
-//        nanosuit.render(mirror_shader);
+        //        nanosuit.render(mirror_shader);
         //        glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // Render a cube the 'easy' way
@@ -721,7 +709,7 @@ int main2() {
         glUniformMatrix4fv(glGetUniformLocation(shader, "projection"), 1,
                            GL_FALSE, glm::value_ptr(projection));
         cube_tex.bind();
-//        cube.render(shader);
+        //        cube.render(shader);
 
         // Disable face culling for planes and quads
         glDisable(GL_CULL_FACE);
@@ -740,7 +728,7 @@ int main2() {
                            glm::value_ptr(view));
         glUniformMatrix4fv(glGetUniformLocation(shader, "projection"), 1,
                            GL_FALSE, glm::value_ptr(projection));
-//        floor_plane.render(shader);
+        //        floor_plane.render(shader);
 
         glUseProgram(grass_shader);
 

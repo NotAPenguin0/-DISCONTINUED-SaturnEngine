@@ -29,8 +29,19 @@ void main()
 
     vec3 specular = vec3(0.3) * spec; // assuming bright white light color
 
+    //simple attenuation
+    float constant = 1.0;
+    float linear = 0.045;
+    float quadratic = 0.0075;
+
+    float dist    = length(lightPos - FragPos);
+    float attenuation = 1.0 / (constant + linear * dist +  quadratic * (dist * dist));   
+
+    diffuse *= attenuation;
+    specular *= attenuation;
+
     vec3 result = ambient + diffuse + specular;
- //   result = pow(result, vec3(1.0/2.2));
 
     FragColor = vec4(result, 1.0);
+//    FragColor = vec4(normal, 1.0);
 }
